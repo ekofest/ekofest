@@ -11,18 +11,12 @@ import Dict
 import Html exposing (Html, div, input, li, ol, text)
 import Html.Attributes exposing (type_)
 import Html.Events exposing (onInput)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Value)
 import Publicodes exposing (RawRules)
 
 
 type Rules
     = Value
-
-
-type alias Flags =
-    { rules : String
-    , total : Float
-    }
 
 
 
@@ -44,9 +38,15 @@ type alias Model =
     }
 
 
+type alias Flags =
+    { rules : Value
+    , total : Float
+    }
+
+
 init : Flags -> ( Model, Cmd Msg )
 init { rules, total } =
-    case rules |> Decode.decodeString Publicodes.rawRulesDecoder of
+    case rules |> Decode.decodeValue Publicodes.rawRulesDecoder of
         Ok rawRules ->
             ( { rawRules = rawRules, total = total }, Cmd.none )
 
@@ -116,7 +116,7 @@ view model =
                                             ]
                             )
                     )
-                , text "Total (a x 10): "
+                , text "Total (a x 10) = "
                 , text (String.fromFloat model.total)
                 ]
 

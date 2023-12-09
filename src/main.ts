@@ -17,7 +17,7 @@ let total = engine.evaluate("root").nodeValue;
 
 let app = Elm.Main.init({
   flags: {
-    rules: JSON.stringify(rules),
+    rules,
     total,
   },
   node: document.getElementById("elm-app"),

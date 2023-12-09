@@ -1,0 +1,22 @@
+{
+  "name": "ecofest",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "postinstall": "elm-tooling install"
+  },
+  "devDependencies": {
+    "elm-tooling": "^1.15.0",
+    "path": "^0.12.7",
+    "typescript": "^5.0.2",
+    "vite": "^4.3.2",
+    "vite-plugin-elm": "^2.8.0"
+  },
+  "dependencies": {
+    "publicodes": "^1.0.0-beta.77"
+  }
+}

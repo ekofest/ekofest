@@ -1,5 +1,6 @@
-import Engine from "publicodes";
-import { Elm } from "./Main.elm";
+import Engine, { Rule } from "publicodes"
+import { Elm } from "./Main.elm"
+import EcoFestEngine, { RuleName, Situation } from "./EcoFestEngine"
 
 const rules = JSON.parse(`{
   "root": {
@@ -7,24 +8,21 @@ const rules = JSON.parse(`{
   },
   "a": {
     "question": "Combien ?",
-    "par défaut": "1"
+    "par défaut": "10"
   }
-}`);
-
-const engine = new Engine(rules);
-
-let total = engine.evaluate("root").nodeValue;
+}`)
 
 let app = Elm.Main.init({
-  flags: {
-    rules,
-    total,
-  },
-  node: document.getElementById("elm-app"),
-});
+    flags: rules,
+    node: document.getElementById("elm-app"),
+})
 
-app.ports.evaluateWith.subscribe((data: string) => {
-  engine.setSituation({ a: data });
-  const newTotal = engine.evaluate("root").nodeValue;
-  app.ports.totalUpdated.send(newTotal);
-});
+const engine = new EcoFestEngine(rules, app)
+
+app.ports.setSituation.subscribe((newSituation: Situation) => {
+    engine.setSituation(newSituation)
+})
+
+app.ports.evaluate.subscribe((rule: RuleName) => {
+    engine.evaluate(rule)
+})

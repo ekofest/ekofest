@@ -1,11 +1,5 @@
 module Main exposing (..)
 
--- Press buttons to increment and decrement a counter.
---
--- Read how it works:
---   https://guide.elm-lang.org/architecture/buttons.html
---
-
 import Browser
 import Dict
 import Effect
@@ -203,7 +197,7 @@ viewTotal total =
                 H.text "empty"
 
             Nothing ->
-                H.text "..."
+                H.text "_"
         ]
 
 

@@ -4,11 +4,15 @@ import EcoFestEngine, { RuleName, Situation } from "./EcoFestEngine"
 
 const rules = JSON.parse(`{
   "root": {
-    "formule": "a * 10"
+    "formule": "a * (10 - b)"
   },
   "a": {
     "question": "Combien ?",
     "par défaut": "10"
+  },
+  "b": {
+    "question": "Combien ?",
+    "par défaut": "5"
   }
 }`)
 

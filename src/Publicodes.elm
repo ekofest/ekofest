@@ -75,9 +75,10 @@ encodeSituation situation =
 
 type alias RawRule =
     { question : Maybe String
-    , resume : Maybe String
+    , summary : Maybe String
     , unit : Maybe String
     , default : Maybe String
+    , formula : Maybe String
     }
 
 
@@ -88,6 +89,7 @@ rawRuleDecoder =
         |> optional "résumé" (nullable string) Nothing
         |> optional "unité" (nullable string) Nothing
         |> optional "par défaut" (nullable string) Nothing
+        |> optional "formule" (nullable string) Nothing
 
 
 rawRulesDecoder : Decoder RawRules

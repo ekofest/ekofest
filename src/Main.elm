@@ -9,12 +9,12 @@ module Main exposing (..)
 import Browser
 import Dict
 import Effect
-import Html exposing (Html, div, input, li, ol, text)
+import Html as H exposing (Html)
 import Html.Attributes exposing (type_, value)
 import Html.Events exposing (onInput)
-import Json.Decode as Decode exposing (Value)
+import Json.Decode as Decode
 import Json.Encode
-import Publicodes as P
+import Publicodes as P exposing (rootNodeName)
 
 
 
@@ -43,7 +43,7 @@ emptyModel =
 
 
 type alias Flags =
-    Value
+    Decode.Value
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -113,23 +113,39 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    let
+        rootFormula =
+            model.rawRules
+                |> Dict.get P.rootNodeName
+                |> Maybe.andThen (\rawRule -> rawRule.formula)
+                |> Maybe.withDefault ""
+    in
     case Dict.toList model.rawRules of
         [] ->
-            div [] [ text "Il n'y a pas de règles" ]
+            H.div [] [ H.text "Il n'y a pas de règles" ]
 
         rules ->
-            div []
-                [ text "Règles disponibles :"
+            H.div []
+                [ H.h3 [] [ H.text "Questions" ]
                 , viewRules rules model
-                , text "Total (a x 10) = "
-                , viewTotal model.total
+                , H.h3 [] [ H.text "Total" ]
+                , H.i []
+                    [ H.text ("[" ++ rootNodeName ++ "]: ")
+                    , H.text (rootFormula ++ " = ")
+                    , viewTotal model.total
+                    ]
                 ]
 
 
 viewRules : List ( P.RuleName, P.RawRule ) -> Model -> Html Msg
 viewRules rules model =
-    ol []
-        (List.map (viewQuestion model) rules)
+    H.ol []
+        (rules
+            |> List.filterMap
+                (\( name, rule ) ->
+                    rule.question |> Maybe.map (\_ -> viewQuestion model ( name, rule ))
+                )
+        )
 
 
 viewQuestion : Model -> ( P.RuleName, P.RawRule ) -> Html Msg
@@ -146,57 +162,49 @@ viewQuestion model ( name, rule ) =
     in
     case rule.question of
         Just question ->
-            li []
-                [ div [] [ text name, text " : ", text question ]
-                , case Dict.get name model.situation of
-                    Just situationValue ->
-                        input
+            H.li []
+                [ H.div [] [ H.text name, H.text " : ", H.text question ]
+                , case ( Dict.get name model.situation, rule.default ) of
+                    ( Just situationValue, _ ) ->
+                        H.input
                             [ type_ "number"
                             , value (P.nodeValueToString situationValue)
                             , onInput newNumberAnswer
                             ]
                             []
 
-                    Nothing ->
-                        let
-                            _ =
-                                Debug.log "Test"
-                        in
-                        Dict.get name model.rawRules
-                            |> Maybe.andThen (\rawRule -> rawRule.default)
-                            |> Maybe.andThen
-                                (\defaultValue ->
-                                    Just
-                                        (input
-                                            [ type_ "number"
-                                            , value defaultValue
-                                            , onInput newNumberAnswer
-                                            ]
-                                            []
-                                        )
-                                )
-                            |> Maybe.withDefault
-                                (input [ type_ "number", onInput newNumberAnswer ] [])
+                    ( Nothing, Just defaultValue ) ->
+                        H.input
+                            [ type_ "number"
+                            , value defaultValue
+                            , onInput newNumberAnswer
+                            ]
+                            []
+
+                    ( Nothing, Nothing ) ->
+                        H.input [ type_ "number", onInput newNumberAnswer ] []
                 ]
 
         Nothing ->
-            li [] [ text name ]
+            H.li [] [ H.text name ]
 
 
 viewTotal : Maybe P.NodeValue -> Html Msg
 viewTotal total =
-    case total of
-        Just (P.Num value) ->
-            text (String.fromFloat value)
+    H.strong []
+        [ case total of
+            Just (P.Num value) ->
+                H.text (String.fromFloat value)
 
-        Just (P.Str value) ->
-            text value
+            Just (P.Str value) ->
+                H.text value
 
-        Just P.Empty ->
-            text "empty"
+            Just P.Empty ->
+                H.text "empty"
 
-        Nothing ->
-            text "..."
+            Nothing ->
+                H.text "..."
+        ]
 
 
 

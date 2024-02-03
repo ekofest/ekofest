@@ -10,7 +10,8 @@
         "postinstall": "elm-tooling install"
     },
     "dependencies": {
-        "publicodes": "^1.0.0-beta.77"
+        "publicodes": "^1.0.0-beta.77",
+        "publicodes-evenements": "^0.3.3"
     },
     "devDependencies": {
         "elm-tooling": "^1.15.0",

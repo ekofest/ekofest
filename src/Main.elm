@@ -54,7 +54,11 @@ init rules =
         Ok rawRules ->
             ( { emptyModel | rawRules = rawRules }, Effect.evaluate P.rootNodeName )
 
-        Err _ ->
+        Err e ->
+            let
+                _ =
+                    Debug.log "Error" e
+            in
             -- TODO: prints an error
             ( emptyModel, Effect.evaluate P.rootNodeName )
 
@@ -64,7 +68,7 @@ init rules =
 
 
 type Msg
-    = NewNumberAnswer ( P.RuleName, P.NodeValue )
+    = NewAnswer ( P.RuleName, P.NodeValue )
     | UpdateNodeValue ( P.RuleName, Json.Encode.Value )
     | Evaluate ()
     | NoOp
@@ -73,13 +77,10 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewNumberAnswer ( name, value ) ->
+        NewAnswer ( name, value ) ->
             let
                 newSituation =
                     case value of
-                        P.Str _ ->
-                            Dict.insert name value model.situation
-
                         _ ->
                             Dict.insert name value model.situation
             in
@@ -115,13 +116,6 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    let
-        rootFormula =
-            model.rawRules
-                |> Dict.get P.rootNodeName
-                |> Maybe.andThen (\rawRule -> rawRule.formula)
-                |> Maybe.withDefault ""
-    in
     case Dict.toList model.rawRules of
         [] ->
             H.div [] [ H.text "Il n'y a pas de règles" ]
@@ -133,10 +127,20 @@ view model =
                 , H.h3 [] [ H.text "Total" ]
                 , H.i []
                     [ H.text ("[" ++ rootNodeName ++ "]: ")
-                    , H.text (rootFormula ++ " = ")
                     , viewTotal model.total
+                    , viewUnit (Dict.get rootNodeName model.rawRules)
                     ]
                 ]
+
+
+viewUnit : Maybe P.RawRule -> Html Msg
+viewUnit maybeRawRule =
+    case maybeRawRule of
+        Just rawRule ->
+            H.text (" " ++ Maybe.withDefault "" rawRule.unit)
+
+        Nothing ->
+            H.text ""
 
 
 viewRules : List ( P.RuleName, P.RawRule ) -> Model -> Html Msg
@@ -153,14 +157,39 @@ viewRules rules model =
 viewQuestion : Model -> ( P.RuleName, P.RawRule ) -> Html Msg
 viewQuestion model ( name, rule ) =
     let
-        newNumberAnswer =
-            \val ->
-                case String.toFloat val of
-                    Just value ->
-                        NewNumberAnswer ( name, P.Num value )
+        newAnswer val =
+            case String.toFloat val of
+                Just value ->
+                    NewAnswer ( name, P.Num value )
 
-                    Nothing ->
-                        NewNumberAnswer ( name, P.Empty )
+                Nothing ->
+                    if String.isEmpty val then
+                        NewAnswer ( name, P.Empty )
+
+                    else
+                        NewAnswer ( name, P.Str val )
+    in
+    let
+        viewDefaultValue defaultValue =
+            case defaultValue of
+                P.Num num ->
+                    H.input
+                        [ type_ "number"
+                        , value (String.fromFloat num)
+                        , onInput newAnswer
+                        ]
+                        []
+
+                P.Str str ->
+                    H.input
+                        [ type_ "text"
+                        , value str
+                        , onInput newAnswer
+                        ]
+                        []
+
+                P.Empty ->
+                    H.input [ type_ "number" ] []
     in
     case rule.question of
         Just question ->
@@ -168,23 +197,25 @@ viewQuestion model ( name, rule ) =
                 [ H.div [] [ H.text name, H.text " : ", H.text question ]
                 , case ( Dict.get name model.situation, rule.default ) of
                     ( Just situationValue, _ ) ->
+                        let
+                            _ =
+                                Debug.log "situationValue" situationValue
+                        in
                         H.input
-                            [ type_ "number"
-                            , value (P.nodeValueToString situationValue)
-                            , onInput newNumberAnswer
+                            [ value (P.nodeValueToString situationValue)
+                            , onInput newAnswer
                             ]
                             []
 
                     ( Nothing, Just defaultValue ) ->
-                        H.input
-                            [ type_ "number"
-                            , value defaultValue
-                            , onInput newNumberAnswer
-                            ]
-                            []
+                        let
+                            _ =
+                                Debug.log "defaultValue" defaultValue
+                        in
+                        viewDefaultValue defaultValue
 
                     ( Nothing, Nothing ) ->
-                        H.input [ type_ "number", onInput newNumberAnswer ] []
+                        H.input [ type_ "number", onInput newAnswer ] []
                 ]
 
         Nothing ->

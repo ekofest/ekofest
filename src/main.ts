@@ -1,4 +1,4 @@
-import Engine, { Rule } from "publicodes"
+// @ts-ignore
 import { Elm } from "./Main.elm"
 import EcoFestEngine, { RuleName, Situation } from "./EcoFestEngine"
 

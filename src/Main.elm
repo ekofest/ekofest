@@ -4,7 +4,7 @@ import Browser
 import Dict
 import Effect
 import Html as H exposing (Html)
-import Html.Attributes exposing (type_, value)
+import Html.Attributes exposing (class, type_, value)
 import Html.Events exposing (onInput)
 import Json.Decode as Decode
 import Json.Encode
@@ -17,7 +17,12 @@ import Publicodes as P exposing (rootNodeName)
 
 main : Program Flags Model Msg
 main =
-    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
+    Browser.element
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
 
 
 
@@ -33,7 +38,10 @@ type alias Model =
 
 emptyModel : Model
 emptyModel =
-    { rawRules = Dict.empty, total = Nothing, situation = Dict.empty }
+    { rawRules = Dict.empty
+    , total = Nothing
+    , situation = Dict.empty
+    }
 
 
 type alias Flags =
@@ -120,7 +128,7 @@ view model =
 
         rules ->
             H.div []
-                [ H.h3 [] [ H.text "Questions" ]
+                [ H.h3 [ class "flex" ] [ H.text "Questions" ]
                 , viewRules rules model
                 , H.h3 [] [ H.text "Total" ]
                 , H.i []

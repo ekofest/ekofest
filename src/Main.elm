@@ -154,6 +154,13 @@ viewRules rules model =
         )
 
 
+
+-- TODO:
+-- - should be in a separate module
+-- - should render the input type based on the mecanisms in the rule (i.e.
+-- select for [UnePossibilite] etc.)
+
+
 viewQuestion : Model -> ( P.RuleName, P.RawRule ) -> Html Msg
 viewQuestion model ( name, rule ) =
     let
@@ -197,10 +204,6 @@ viewQuestion model ( name, rule ) =
                 [ H.div [] [ H.text name, H.text " : ", H.text question ]
                 , case ( Dict.get name model.situation, rule.default ) of
                     ( Just situationValue, _ ) ->
-                        let
-                            _ =
-                                Debug.log "situationValue" situationValue
-                        in
                         H.input
                             [ value (P.nodeValueToString situationValue)
                             , onInput newAnswer
@@ -208,10 +211,6 @@ viewQuestion model ( name, rule ) =
                             []
 
                     ( Nothing, Just defaultValue ) ->
-                        let
-                            _ =
-                                Debug.log "defaultValue" defaultValue
-                        in
                         viewDefaultValue defaultValue
 
                     ( Nothing, Nothing ) ->

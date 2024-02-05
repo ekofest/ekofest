@@ -33,11 +33,29 @@ export default class extends Engine {
         this.elmApp.ports.evaluatedRule.send([
             value,
             {
-                nodeValue: result.nodeValue,
+                nodeValue: result.nodeValue ?? null,
                 isNullable: result?.isNullable ?? false,
                 missingVariables: Object.keys(result.missingVariables),
             },
         ])
         return result
+    }
+
+    evaluateAll(rules: RuleName[]) {
+        const evaluatedRules = rules.map((rule) => {
+            const result = super.evaluate(rule)
+            return [
+                rule,
+                {
+                    nodeValue: result.nodeValue ?? null,
+                    isNullable: result?.isNullable ?? false,
+                    missingVariables: Object.keys(result.missingVariables),
+                },
+            ]
+        })
+
+        console.log("evaluteAll:", evaluatedRules)
+        this.elmApp.ports.evaluatedRules.send(evaluatedRules)
+        return evaluatedRules
     }
 }

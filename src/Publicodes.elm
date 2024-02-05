@@ -22,29 +22,12 @@ type NodeValue
     | Empty
 
 
-decodeBool : Decoder Bool
-decodeBool =
-    Decode.string
-        |> Decode.andThen
-            (\str ->
-                case str of
-                    "oui" ->
-                        Decode.succeed True
-
-                    "non" ->
-                        Decode.succeed False
-
-                    _ ->
-                        Decode.fail "expected 'oui' or 'non'"
-            )
-
-
 nodeValueDecoder : Decoder NodeValue
 nodeValueDecoder =
     Decode.oneOf
         [ Decode.map Str Decode.string
         , Decode.map Num Decode.float
-        , Decode.map Boolean decodeBool
+        , Decode.map Boolean Decode.bool
         , Decode.null Empty
         ]
 

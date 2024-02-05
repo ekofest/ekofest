@@ -6,6 +6,7 @@ import Effect
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Decode exposing (string)
 import Json.Decode.Pipeline as Decode
 import Json.Encode
@@ -80,11 +81,10 @@ init rules =
                                 Maybe.map (\_ -> name) rule.question
                             )
               }
-            , -- TODO: should be [Effect.evaluateAll]
-              Cmd.batch
-                (Dict.toList rawRules
-                    |> List.map (\( name, _ ) -> Effect.evaluate name)
-                )
+            , -- TODO: should be [Effect.evaluateAll]j
+              Dict.toList rawRules
+                |> List.map (\( name, _ ) -> name)
+                |> Effect.evaluateAll
             )
 
         Err e ->
@@ -103,6 +103,7 @@ init rules =
 type Msg
     = NewAnswer ( P.RuleName, P.NodeValue )
     | UpdateEvaluation ( P.RuleName, Json.Encode.Value )
+    | UpdateAllEvaluation (List ( P.RuleName, Json.Encode.Value ))
     | Evaluate ()
     | NoOp
 
@@ -124,30 +125,39 @@ update msg model =
             )
 
         UpdateEvaluation ( name, encodedEvaluation ) ->
-            case Decode.decodeValue evaluationDecoder encodedEvaluation of
-                Ok eval ->
-                    ( { model | evaluations = Dict.insert name eval model.evaluations }
-                    , Cmd.none
-                    )
+            ( updateEvaluation ( name, encodedEvaluation ) model, Cmd.none )
 
-                Err e ->
-                    let
-                        _ =
-                            Debug.log "update evaluation" e
-                    in
-                    -- TODO: should print an error
-                    ( model, Cmd.none )
+        UpdateAllEvaluation encodedEvaluations ->
+            ( List.foldl updateEvaluation model encodedEvaluations, Cmd.none )
 
         Evaluate () ->
             ( model
-            , Cmd.batch
-                (Dict.toList model.rawRules
-                    |> List.map (\( name, _ ) -> Effect.evaluate name)
-                )
+            , -- TODO: could it be clever to only evaluate the rules that have been updated?
+              Dict.toList model.rawRules
+                |> List.map (\( name, _ ) -> name)
+                |> Effect.evaluateAll
             )
 
         NoOp ->
             ( model, Cmd.none )
+
+
+updateEvaluation : ( P.RuleName, Json.Encode.Value ) -> Model -> Model
+updateEvaluation ( name, encodedEvaluation ) model =
+    case Decode.decodeValue evaluationDecoder encodedEvaluation of
+        Ok eval ->
+            { model | evaluations = Dict.insert name eval model.evaluations }
+
+        Err e ->
+            let
+                _ =
+                    Debug.log "updateEvaluation: decode error:" e
+            in
+            let
+                _ =
+                    Debug.log "updateEvaluation: decode error:" name
+            in
+            model
 
 
 
@@ -163,7 +173,7 @@ view model =
         rules ->
             div []
                 [ h3 [ class "flex" ] [ text "Questions" ]
-                , viewRules model rules
+                , lazy2 viewRules model rules
                 , h3 [] [ text "Total" ]
                 , i []
                     [ text ("[" ++ rootNodeName ++ "]: ")
@@ -362,5 +372,6 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ Effect.evaluatedRule UpdateEvaluation
+        , Effect.evaluatedRules UpdateAllEvaluation
         , Effect.situationUpdated Evaluate
         ]

@@ -172,9 +172,9 @@ view model =
 
         rules ->
             div []
-                [ h3 [ class "flex" ] [ text "Questions" ]
+                [ h2 [ class "text-3xl" ] [ text "Questions" ]
                 , lazy2 viewRules model rules
-                , h3 [] [ text "Total" ]
+                , h2 [ class "underline" ] [ text "Total" ]
                 , i []
                     [ text ("[" ++ rootNodeName ++ "]: ")
                     , viewResult (Dict.get rootNodeName model.evaluations)
@@ -301,7 +301,7 @@ viewInput model ( name, rule ) =
             input
                 [ type_ "checkbox"
                 , checked bool
-                , onInput newAnswer
+                , onCheck (\b -> NewAnswer ( name, P.Boolean b ))
                 ]
                 []
 
@@ -326,7 +326,7 @@ viewInput model ( name, rule ) =
             input
                 [ type_ "checkbox"
                 , checked bool
-                , onInput newAnswer
+                , onCheck (\b -> NewAnswer ( name, P.Boolean b ))
                 ]
                 []
 

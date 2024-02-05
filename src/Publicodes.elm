@@ -18,8 +18,25 @@ rootNodeName =
 type NodeValue
     = Str String
     | Num Float
-      -- TODO: what to do with empty values?
+    | Boolean Bool
     | Empty
+
+
+decodeBool : Decoder Bool
+decodeBool =
+    Decode.string
+        |> Decode.andThen
+            (\str ->
+                case str of
+                    "oui" ->
+                        Decode.succeed True
+
+                    "non" ->
+                        Decode.succeed False
+
+                    _ ->
+                        Decode.fail "expected 'oui' or 'non'"
+            )
 
 
 nodeValueDecoder : Decoder NodeValue
@@ -27,6 +44,7 @@ nodeValueDecoder =
     Decode.oneOf
         [ Decode.map Str Decode.string
         , Decode.map Num Decode.float
+        , Decode.map Boolean decodeBool
         ]
 
 
@@ -34,10 +52,18 @@ nodeValueEncoder : NodeValue -> Encode.Value
 nodeValueEncoder nodeValue =
     case nodeValue of
         Str str ->
-            Encode.string str
+            -- Publicodes enums needs to be single quoted
+            Encode.string ("'" ++ str ++ "'")
 
         Num num ->
             Encode.float num
+
+        Boolean bool ->
+            if bool then
+                Encode.string "oui"
+
+            else
+                Encode.string "non"
 
         Empty ->
             Encode.null
@@ -51,6 +77,13 @@ nodeValueToString nodeValue =
 
         Num num ->
             String.fromFloat num
+
+        Boolean bool ->
+            if bool then
+                "oui"
+
+            else
+                "non"
 
         Empty ->
             ""
@@ -116,9 +149,7 @@ possibiliteDecoder =
 
 
 type Mecanism
-    = Ref RuleName
-    | Val NodeValue
-    | Expr String
+    = Expr NodeValue
     | Somme (List String)
     | Moyenne (List String)
     | Variations (List Clause)
@@ -128,9 +159,7 @@ type Mecanism
 mecansismDecoder : Decoder Mecanism
 mecansismDecoder =
     Decode.oneOf
-        [ map Ref (field "ref" string)
-        , map Val nodeValueDecoder
-        , map Expr string
+        [ map Expr nodeValueDecoder
         , map Somme (field "somme" (list string))
         , map Moyenne (field "moyenne" (list string))
         , map Variations (field "variations" (list clauseDecoder))

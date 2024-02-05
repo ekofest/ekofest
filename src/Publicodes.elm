@@ -1,6 +1,8 @@
 module Publicodes exposing (..)
 
 import Dict exposing (Dict)
+import FormatNumber exposing (format)
+import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Json.Decode as Decode exposing (Decoder, field, list, map, nullable, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
@@ -25,7 +27,19 @@ type NodeValue
 nodeValueDecoder : Decoder NodeValue
 nodeValueDecoder =
     Decode.oneOf
-        [ Decode.map Str Decode.string
+        [ Decode.map
+            (\str ->
+                case str of
+                    "oui" ->
+                        Boolean True
+
+                    "non" ->
+                        Boolean False
+
+                    _ ->
+                        Str str
+            )
+            Decode.string
         , Decode.map Num Decode.float
         , Decode.map Boolean Decode.bool
         , Decode.null Empty
@@ -59,7 +73,7 @@ nodeValueToString nodeValue =
             str
 
         Num num ->
-            String.fromFloat num
+            format { frenchLocale | decimals = Exact 1 } num
 
         Boolean bool ->
             if bool then
@@ -96,6 +110,7 @@ type alias RawRule =
     , unit : Maybe String
     , default : Maybe NodeValue
     , formula : Maybe Mecanism
+    , title : Maybe String
     }
 
 
@@ -158,6 +173,7 @@ rawRuleDecoder =
         |> optional "unité" (nullable string) Nothing
         |> optional "par défaut" (nullable nodeValueDecoder) Nothing
         |> optional "formule" (nullable mecanismDecoder) Nothing
+        |> optional "titre" (nullable string) Nothing
 
 
 rawRulesDecoder : Decoder RawRules

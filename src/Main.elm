@@ -6,7 +6,7 @@ import Effect
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Lazy exposing (lazy, lazy2)
+import Html.Lazy exposing (lazy2)
 import Json.Decode as Decode exposing (string)
 import Json.Decode.Pipeline as Decode
 import Json.Encode
@@ -164,23 +164,58 @@ updateEvaluation ( name, encodedEvaluation ) model =
 -- VIEW
 
 
+getTitle : Model -> P.RuleName -> String
+getTitle model name =
+    case Dict.get name model.rawRules of
+        Just rule ->
+            let
+                _ =
+                    Debug.log "getTitle" rule.title
+            in
+            Maybe.withDefault name rule.title
+
+        Nothing ->
+            name
+
+
 view : Model -> Html Msg
 view model =
-    case Dict.toList model.rawRules of
-        [] ->
-            div [] [ text "Désolé, une erreur est survenue lors du chargement des règles." ]
+    div []
+        [ viewHeader
+        , case Dict.toList model.rawRules of
+            [] ->
+                div [] [ text "Désolé, une erreur est survenue lors du chargement des règles." ]
 
-        rules ->
-            div []
-                [ h2 [ class "text-3xl" ] [ text "Questions" ]
-                , lazy2 viewRules model rules
-                , h2 [ class "underline" ] [ text "Total" ]
-                , i []
-                    [ text ("[" ++ rootNodeName ++ "]: ")
-                    , viewResult (Dict.get rootNodeName model.evaluations)
-                    , viewUnit (Dict.get rootNodeName model.rawRules)
+            rules ->
+                div [ class "flex p-2" ]
+                    [ div [ class "basis-3/4" ]
+                        [ h2 [ class "text-2xl font-bold" ] [ text "Questions" ]
+                        , lazy2 viewRules model rules
+                        ]
+                    , div [ class "border-r-2 border-green-600 mx-4" ] []
+                    , div [ class "basis-1/4" ]
+                        [ h2 [ class "text-2xl font-bold" ] [ text "Total" ]
+                        , p [ class "font-semi" ] [ text (getTitle model rootNodeName ++ " = ") ]
+                        , viewResult (Dict.get rootNodeName model.evaluations)
+                        , viewUnit (Dict.get rootNodeName model.rawRules)
+                        ]
                     ]
+        ]
+
+
+viewHeader : Html Msg
+viewHeader =
+    header []
+        [ div [ class "flex items-center justify-between w-full bg-green-800 p-2" ]
+            [ p [ class "text-xl font-bold text-white" ] [ text "EcoFest" ]
+            , a
+                [ class "text-green-100"
+                , href "https://github.com/ecofest/publicodes-evenements"
+                , target "_blank"
                 ]
+                [ text "Modèle de calcul ⧉" ]
+            ]
+        ]
 
 
 viewUnit : Maybe P.RawRule -> Html Msg
@@ -195,7 +230,7 @@ viewUnit maybeRawRule =
 
 viewRules : Model -> List ( P.RuleName, P.RawRule ) -> Html Msg
 viewRules model rules =
-    ul []
+    ul [ class "grid grid-rows-5 grid-flow-col gap-4" ]
         (rules
             |> List.filterMap
                 (\( name, rule ) ->
@@ -223,8 +258,8 @@ viewQuestion model ( name, rule ) =
     rule.question
         |> Maybe.map
             (\question ->
-                li []
-                    [ div [] [ text question ]
+                li [ class "w-100 p-2 bg-green-100" ]
+                    [ div [ class "pb-2" ] [ text question ]
                     , viewInput model ( name, rule )
                     ]
             )
@@ -339,26 +374,7 @@ viewResult : Maybe Evaluation -> Html Msg
 viewResult eval =
     case eval of
         Just { nodeValue } ->
-            strong []
-                [ case nodeValue of
-                    P.Num n ->
-                        text (String.fromFloat n)
-
-                    P.Str s ->
-                        text s
-
-                    P.Boolean b ->
-                        text
-                            (if b then
-                                "oui"
-
-                             else
-                                "non"
-                            )
-
-                    P.Empty ->
-                        text ""
-                ]
+            strong [] [ text (P.nodeValueToString nodeValue) ]
 
         Nothing ->
             text "Calcul en cours"

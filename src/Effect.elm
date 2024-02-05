@@ -23,7 +23,9 @@ port setSituation : Json.Encode.Value -> Cmd msg
 -- SUBSCRIPTIONS
 
 
-port evaluatedNodeValue : (( Publicodes.RuleName, Json.Encode.Value ) -> msg) -> Sub msg
+{-| Receives the result of the evaluation of a rule in the form of a tuple (ruleName, {nodeValue, missingsVariables}).
+-}
+port evaluatedRule : (( Publicodes.RuleName, Json.Encode.Value ) -> msg) -> Sub msg
 
 
 port situationUpdated : (() -> msg) -> Sub msg

@@ -12,7 +12,7 @@ type alias RuleName =
 
 rootNodeName : RuleName
 rootNodeName =
-    "bilan"
+    "resultats . bilan total"
 
 
 type NodeValue
@@ -45,6 +45,7 @@ nodeValueDecoder =
         [ Decode.map Str Decode.string
         , Decode.map Num Decode.float
         , Decode.map Boolean decodeBool
+        , Decode.null Empty
         ]
 
 
@@ -52,8 +53,7 @@ nodeValueEncoder : NodeValue -> Encode.Value
 nodeValueEncoder nodeValue =
     case nodeValue of
         Str str ->
-            -- Publicodes enums needs to be single quoted
-            Encode.string ("'" ++ str ++ "'")
+            Encode.string (toConstantString str)
 
         Num num ->
             Encode.float num
@@ -121,18 +121,18 @@ type alias RawRule =
 
 
 type alias Clause =
-    { si : Maybe String
-    , alors : Maybe String
-    , sinon : Maybe String
+    { si : Maybe NodeValue
+    , alors : Maybe NodeValue
+    , sinon : Maybe NodeValue
     }
 
 
 clauseDecoder : Decoder Clause
 clauseDecoder =
     Decode.succeed Clause
-        |> optional "si" (nullable string) Nothing
-        |> optional "alors" (nullable string) Nothing
-        |> optional "sinon" (nullable string) Nothing
+        |> optional "si" (nullable nodeValueDecoder) Nothing
+        |> optional "alors" (nullable nodeValueDecoder) Nothing
+        |> optional "sinon" (nullable nodeValueDecoder) Nothing
 
 
 type alias Possibilite =
@@ -156,8 +156,8 @@ type Mecanism
     | UnePossibilite Possibilite
 
 
-mecansismDecoder : Decoder Mecanism
-mecansismDecoder =
+mecanismDecoder : Decoder Mecanism
+mecanismDecoder =
     Decode.oneOf
         [ map Expr nodeValueDecoder
         , map Somme (field "somme" (list string))
@@ -174,9 +174,23 @@ rawRuleDecoder =
         |> optional "résumé" (nullable string) Nothing
         |> optional "unité" (nullable string) Nothing
         |> optional "par défaut" (nullable nodeValueDecoder) Nothing
-        |> optional "formule" (nullable mecansismDecoder) Nothing
+        |> optional "formule" (nullable mecanismDecoder) Nothing
 
 
 rawRulesDecoder : Decoder RawRules
 rawRulesDecoder =
     Decode.dict rawRuleDecoder
+
+
+
+-- Helpers
+
+
+{-| Publicodes enums needs to be single quoted
+
+TODO: express constant strings in a more type-safe way
+
+-}
+toConstantString : String -> String
+toConstantString str =
+    "'" ++ str ++ "'"

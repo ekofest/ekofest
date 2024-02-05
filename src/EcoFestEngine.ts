@@ -30,7 +30,14 @@ export default class extends Engine {
 
     evaluate(value: PublicodesExpression): EvaluatedNode {
         const result = super.evaluate(value)
-        this.elmApp.ports.evaluatedNodeValue.send([value, result.nodeValue])
+        this.elmApp.ports.evaluatedRule.send([
+            value,
+            {
+                nodeValue: result.nodeValue,
+                isNullable: result?.isNullable ?? false,
+                missingVariables: Object.keys(result.missingVariables),
+            },
+        ])
         return result
     }
 }

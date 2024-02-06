@@ -4,14 +4,17 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ["Inter", "sans-serif"],
-                serif: ["Georgia", "serif"],
-                mono: ["Menlo", "monospace"],
+                sans: [
+                    /* "Syne", "Istok Web",  */ "Titillium Web",
+                    "sans-serif",
+                ],
+                // serif: ["Georgia", "serif"],
+                // mono: ["Menlo", "monospace"],
             },
         },
     },
-    plugins: [
-        require("@tailwindcss/forms"),
-        require("@tailwindcss/typography"),
-    ],
+    plugins: [require("@tailwindcss/typography"), require("daisyui")],
+    daisyui: {
+        themes: ["bumblebee"],
+    },
 }

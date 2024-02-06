@@ -1,17 +1,21 @@
 module Main exposing (..)
 
 import Browser
+import Chart as C
+import Chart.Attributes as CA
 import Dict exposing (Dict)
 import Effect
+import Helpers as H exposing (resultNamespace)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Lazy exposing (lazy2)
+import Html.Lazy exposing (lazy)
+import Icons
 import Json.Decode as Decode exposing (string)
 import Json.Decode.Pipeline as Decode
 import Json.Encode
 import Platform.Cmd as Cmd
-import Publicodes as P exposing (Mecanism(..), rootNodeName)
+import Publicodes as P exposing (Mecanism(..))
 
 
 
@@ -50,8 +54,9 @@ evaluationDecoder =
 type alias Model =
     { rawRules : P.RawRules
     , evaluations : Dict P.RuleName Evaluation
-    , questions : List P.RuleName
+    , questions : Dict String (List P.RuleName)
     , situation : P.Situation
+    , categories : List P.RuleName
     }
 
 
@@ -59,8 +64,9 @@ emptyModel : Model
 emptyModel =
     { rawRules = Dict.empty
     , evaluations = Dict.empty
-    , questions = []
+    , questions = Dict.empty
     , situation = Dict.empty
+    , categories = []
     }
 
 
@@ -72,17 +78,16 @@ init : Flags -> ( Model, Cmd Msg )
 init rules =
     case rules |> Decode.decodeValue P.rawRulesDecoder of
         Ok rawRules ->
+            let
+                categories =
+                    H.getCategories rawRules
+            in
             ( { emptyModel
                 | rawRules = rawRules
-                , questions =
-                    Dict.toList rawRules
-                        |> List.filterMap
-                            (\( name, rule ) ->
-                                Maybe.map (\_ -> name) rule.question
-                            )
+                , questions = H.getQuestions rawRules categories
+                , categories = categories
               }
-            , -- TODO: should be [Effect.evaluateAll]j
-              Dict.toList rawRules
+            , Dict.toList rawRules
                 |> List.map (\( name, _ ) -> name)
                 |> Effect.evaluateAll
             )
@@ -164,88 +169,79 @@ updateEvaluation ( name, encodedEvaluation ) model =
 -- VIEW
 
 
-getTitle : Model -> P.RuleName -> String
-getTitle model name =
-    case Dict.get name model.rawRules of
-        Just rule ->
-            let
-                _ =
-                    Debug.log "getTitle" rule.title
-            in
-            Maybe.withDefault name rule.title
-
-        Nothing ->
-            name
-
-
 view : Model -> Html Msg
 view model =
     div []
         [ viewHeader
-        , case Dict.toList model.rawRules of
-            [] ->
-                div [] [ text "Désolé, une erreur est survenue lors du chargement des règles." ]
+        , if Dict.isEmpty model.rawRules then
+            div [ class "prose" ] [ text "Chargement..." ]
 
-            rules ->
-                div [ class "flex p-2" ]
-                    [ div [ class "basis-3/4" ]
-                        [ h2 [ class "text-2xl font-bold" ] [ text "Questions" ]
-                        , lazy2 viewRules model rules
-                        ]
-                    , div [ class "border-r-2 border-green-600 mx-4" ] []
-                    , div [ class "basis-1/4" ]
-                        [ h2 [ class "text-2xl font-bold" ] [ text "Total" ]
-                        , p [ class "font-semi" ] [ text (getTitle model rootNodeName ++ " = ") ]
-                        , viewResult (Dict.get rootNodeName model.evaluations)
-                        , viewUnit (Dict.get rootNodeName model.rawRules)
-                        ]
+          else
+            div [ class "grid grid-cols-3" ]
+                [ div [ class "pl-8 pr-4 pb-4 col-span-2 overflow-y-auto h-[96vh]" ]
+                    [ -- [ div [ class "tabs tabs-bordered" ]
+                      --     [ a [ class "tab", href "#alimentation" ] [ text "Alimentation" ]
+                      --     , a [ class "tab tab-active", href "#transport" ] [ text "Transport" ]
+                      --     , a [ class "tab", href "#infrascture" ] [ text "Infrastructure" ]
+                      --     , a [ class "tab" ] [ text "Hébergement" ]
+                      --     ]
+                      lazy viewCategories model
                     ]
+                , div [ class "flex flex-col pr-8 pl-4 col-span-1" ]
+                    [ lazy viewResult model
+                    , lazy viewGraph model
+                    ]
+                ]
         ]
 
 
 viewHeader : Html Msg
 viewHeader =
     header []
-        [ div [ class "flex items-center justify-between w-full bg-green-800 p-2" ]
-            [ p [ class "text-xl font-bold text-white" ] [ text "EcoFest" ]
+        [ div [ class "flex items-center justify-between w-full p-2 mb-4 border-b-2 border-primary" ]
+            [ div [ class "flex items-center" ]
+                [ img [ src "/src/assets/mimosa-svgrepo-com.svg", class "w-10 h-10" ] []
+                , p [ class "text-3xl font-bold text-black ml-2" ] [ text "Mimozo" ]
+                ]
             , a
-                [ class "text-green-100"
+                [ class "text-neutral"
                 , href "https://github.com/ecofest/publicodes-evenements"
                 , target "_blank"
                 ]
-                [ text "Modèle de calcul ⧉" ]
+                [ text "Consulter le modèle de calcul ⧉" ]
             ]
         ]
 
 
-viewUnit : Maybe P.RawRule -> Html Msg
-viewUnit maybeRawRule =
-    case maybeRawRule of
-        Just rawRule ->
-            text (" " ++ Maybe.withDefault "" rawRule.unit)
+viewCategories : Model -> Html Msg
+viewCategories model =
+    div [ class "" ]
+        (model.questions
+            |> Dict.toList
+            |> List.map
+                (\( category, questions ) ->
+                    div [ class "card shadow p-4 mb-8 bg-base-100" ]
+                        [ h2 [ class "text-2xl font-bold text-accent" ] [ text (String.toUpper category) ]
+                        , div [ class "divider" ] []
+                        , div [ class "grid grid-cols-2 gap-4" ]
+                            (questions
+                                |> List.filterMap
+                                    (\name ->
+                                        case ( Dict.get name model.rawRules, Dict.get name model.evaluations ) of
+                                            ( Just rule, Just eval ) ->
+                                                if eval.isNullable then
+                                                    Nothing
 
-        Nothing ->
-            text ""
+                                                else
+                                                    Just
+                                                        (viewQuestion model ( name, rule ))
 
-
-viewRules : Model -> List ( P.RuleName, P.RawRule ) -> Html Msg
-viewRules model rules =
-    ul [ class "flex flex-col" ]
-        (rules
-            |> List.filterMap
-                (\( name, rule ) ->
-                    case ( rule.question, Dict.get name model.evaluations ) of
-                        ( Just _, Just evaluation ) ->
-                            if not evaluation.isNullable then
-                                Just [ viewQuestion model ( name, rule ) ]
-
-                            else
-                                Nothing
-
-                        _ ->
-                            Nothing
+                                            _ ->
+                                                Nothing
+                                    )
+                            )
+                        ]
                 )
-            |> List.concat
         )
 
 
@@ -258,9 +254,12 @@ viewQuestion model ( name, rule ) =
     rule.question
         |> Maybe.map
             (\question ->
-                li [ class "w-100 p-2 m-2 bg-green-100" ]
-                    [ div [ class "pb-2" ] [ text question ]
-                    , viewInput model ( name, rule )
+                div []
+                    [ label [ class "form-control" ]
+                        [ div [ class "label" ]
+                            [ span [ class "label-text text-xl" ] [ text question ] ]
+                        , viewInput model ( name, rule )
+                        ]
                     ]
             )
         |> Maybe.withDefault (text "")
@@ -289,7 +288,7 @@ viewInput model ( name, rule ) =
     case ( rule.formula, Dict.get name model.situation, maybeNodeValue ) of
         ( Just (UnePossibilite { possibilites }), Just situationValue, _ ) ->
             select
-                [ onInput newAnswer ]
+                [ onInput newAnswer, class "select select-bordered select-lg" ]
                 (possibilites
                     |> List.map
                         (\possibilite ->
@@ -305,12 +304,8 @@ viewInput model ( name, rule ) =
                 )
 
         ( Just (UnePossibilite { possibilites }), Nothing, Just nodeValue ) ->
-            let
-                _ =
-                    Debug.log "select" nodeValue
-            in
             select
-                [ onInput newAnswer ]
+                [ onInput newAnswer, class "select select-bordered select-lg" ]
                 (possibilites
                     |> List.map
                         (\possibilite ->
@@ -326,6 +321,7 @@ viewInput model ( name, rule ) =
         ( _, Just (P.Num num), _ ) ->
             input
                 [ type_ "number"
+                , class "input input-bordered input-lg"
                 , value (String.fromFloat num)
                 , onInput newAnswer
                 ]
@@ -334,23 +330,20 @@ viewInput model ( name, rule ) =
         ( _, Just (P.Str str), _ ) ->
             input
                 [ type_ "text"
+                , class "input input-bordered input-lg"
                 , value str
                 , onInput newAnswer
                 ]
                 []
 
         ( _, Just (P.Boolean bool), _ ) ->
-            input
-                [ type_ "checkbox"
-                , checked bool
-                , onCheck (\b -> NewAnswer ( name, P.Boolean b ))
-                ]
-                []
+            viewBooleanRadioInput name bool
 
         -- We have a default value
         ( _, Nothing, Just (P.Num num) ) ->
             input
                 [ type_ "number"
+                , class "input input-bordered input-lg"
                 , placeholder (String.fromFloat num)
                 , onInput newAnswer
                 ]
@@ -359,32 +352,158 @@ viewInput model ( name, rule ) =
         ( _, Nothing, Just (P.Str str) ) ->
             input
                 [ type_ "text"
+                , class "input input-bordered input-lg"
                 , placeholder str
                 , onInput newAnswer
                 ]
                 []
 
         ( _, Nothing, Just (P.Boolean bool) ) ->
-            input
-                [ type_ "checkbox"
-                , checked bool
-                , onCheck (\b -> NewAnswer ( name, P.Boolean b ))
-                ]
-                []
+            viewBooleanRadioInput name bool
 
         _ ->
             -- TODO: should print an error
             input [ type_ "number", onInput newAnswer ] []
 
 
-viewResult : Maybe Evaluation -> Html Msg
-viewResult eval =
+viewBooleanRadioInput : P.RuleName -> Bool -> Html Msg
+viewBooleanRadioInput name bool =
+    div [ class "form-control" ]
+        [ label [ class "label cursor-pointer" ]
+            [ span [ class "label-text" ] [ text "Oui" ]
+            , input
+                [ class "radio"
+                , type_ "radio"
+                , checked bool
+                , onCheck (\b -> NewAnswer ( name, P.Boolean b ))
+                ]
+                []
+            ]
+        , label [ class "label cursor-pointer" ]
+            [ span [ class "label-text" ] [ text "Non" ]
+            , input
+                [ class "radio"
+                , type_ "radio"
+                , checked (not bool)
+                , onCheck (\b -> NewAnswer ( name, P.Boolean (not b) ))
+                ]
+                []
+            ]
+        ]
+
+
+viewResult : Model -> Html Msg
+viewResult model =
+    let
+        resultRules =
+            Dict.toList model.rawRules
+                |> List.filterMap
+                    (\( name, rule ) ->
+                        case P.splitRuleName name of
+                            [ namespace, _ ] ->
+                                if namespace == H.resultNamespace then
+                                    Just ( name, rule )
+
+                                else
+                                    Nothing
+
+                            _ ->
+                                Nothing
+                    )
+    in
+    div [ class "stats stats-vertical shadow border-1 w-full" ]
+        (resultRules
+            |> List.map
+                (\( name, rule ) ->
+                    div [ class "stat" ]
+                        [ div [ class "stat-figure text-primary" ]
+                            [ Icons.zap ]
+                        , div [ class "stat-title" ]
+                            [ text (getTitle model name) ]
+                        , div [ class "stat-value text-primary" ]
+                            [ viewEvaluation (Dict.get name model.evaluations) ]
+                        , div [ class "stat-desc text-secondary" ] [ viewUnit rule ]
+                        ]
+                )
+        )
+
+
+getTitle : Model -> P.RuleName -> String
+getTitle model name =
+    case Dict.get name model.rawRules of
+        Just rule ->
+            Maybe.withDefault name rule.title
+
+        Nothing ->
+            name
+
+
+viewEvaluation : Maybe Evaluation -> Html Msg
+viewEvaluation eval =
     case eval of
         Just { nodeValue } ->
-            strong [] [ text (P.nodeValueToString nodeValue) ]
+            text (P.nodeValueToString nodeValue)
 
         Nothing ->
             text "Calcul en cours"
+
+
+viewUnit : P.RawRule -> Html Msg
+viewUnit rawRule =
+    text (" " ++ Maybe.withDefault "" rawRule.unit)
+
+
+viewGraph : Model -> Html Msg
+viewGraph model =
+    let
+        total =
+            Dict.get H.totalRuleName model.evaluations
+                |> Maybe.andThen (\{ nodeValue } -> P.nodeValueToFloat nodeValue)
+                |> Maybe.withDefault 0
+    in
+    let
+        data =
+            model.categories
+                |> List.filterMap
+                    (\category ->
+                        Dict.get category model.evaluations
+                            |> Maybe.andThen
+                                (\{ nodeValue } ->
+                                    case nodeValue of
+                                        P.Num value ->
+                                            Just
+                                                { category = category
+                                                , nodeValue = (value / total) * 100
+                                                }
+
+                                        _ ->
+                                            Nothing
+                                )
+                    )
+    in
+    div [ class "card shadow p-4 mt-8 bg-base-100" ]
+        [ h2 [ class "text-2xl font-bold" ] [ text "Graphique" ]
+        , div [ class "divider" ] []
+        , C.chart
+            [ CA.width 800
+            , CA.height 800
+            , CA.margin { top = 40, right = 40, bottom = 40, left = 40 }
+            , CA.domain
+                [ CA.lowest 0 CA.exactly
+                , CA.highest 100 CA.exactly
+                ]
+            ]
+            [ C.yLabels
+                [ CA.withGrid
+                , CA.format (\v -> String.fromFloat v ++ " %")
+                ]
+            , C.binLabels .category [ CA.moveDown 30 ]
+            , C.bars [ CA.roundTop 0.25, CA.margin 0.25 ]
+                [ C.bar .nodeValue [ CA.color CA.yellow, CA.opacity 0.8 ]
+                ]
+                data
+            ]
+        ]
 
 
 

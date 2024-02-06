@@ -12,9 +12,8 @@ type alias RuleName =
     String
 
 
-rootNodeName : RuleName
-rootNodeName =
-    "resultats . bilan total"
+type alias SplitedRuleName =
+    List RuleName
 
 
 type NodeValue
@@ -84,6 +83,16 @@ nodeValueToString nodeValue =
 
         Empty ->
             ""
+
+
+nodeValueToFloat : NodeValue -> Maybe Float
+nodeValueToFloat nodeValue =
+    case nodeValue of
+        Num num ->
+            Just num
+
+        _ ->
+            Nothing
 
 
 type alias RawRules =
@@ -214,3 +223,15 @@ TODO: express constant strings in a more type-safe way
 toConstantString : String -> String
 toConstantString str =
     "'" ++ str ++ "'"
+
+
+splitRuleName : RuleName -> SplitedRuleName
+splitRuleName ruleName =
+    String.split " . " ruleName
+
+
+namespace : RuleName -> RuleName
+namespace ruleName =
+    splitRuleName ruleName
+        |> List.head
+        |> Maybe.withDefault ruleName

@@ -958,10 +958,10 @@ process@^0.11.1:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
-publicodes-evenements@^0.3.6:
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.3.6.tgz#f42dc481b830a1f8716cba123c812e5529ea1562"
-  integrity sha512-YMJf54OTRIj0pg9n5tQ4Du56D2pFM/Yk02LchChCKDWOSlzKtQ5SItcEr3GeM9F8ADslW8Z9hngxpi1GgPy/TQ==
+publicodes-evenements@^0.3.7:
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.3.7.tgz#d97b72fdbe202d953752433c8379966db1bc4b3b"
+  integrity sha512-x0IaDfBFwIs1EcwlV3oMtOPvHPZqZbjHdbbJUDwqkbwOYi1EuJ3b669xasySFEtl40okfavlD9GHfjlIfkftYw==
 
 publicodes@^1.0.0-beta.77:
   version "1.0.0-beta.77"

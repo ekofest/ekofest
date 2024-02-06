@@ -3,7 +3,7 @@ module Publicodes exposing (..)
 import Dict exposing (Dict)
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
-import Json.Decode as Decode exposing (Decoder, field, list, map, nullable, string)
+import Json.Decode as Decode exposing (Decoder, field, lazy, list, map, nullable, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 
@@ -108,9 +108,10 @@ type alias RawRule =
     { question : Maybe String
     , summary : Maybe String
     , unit : Maybe String
-    , default : Maybe NodeValue
+    , default : Maybe Mecanism
     , formula : Maybe Mecanism
     , title : Maybe String
+    , note : Maybe String
     }
 
 
@@ -119,31 +120,44 @@ type alias RawRule =
 
 
 type alias Clause =
-    { si : Maybe NodeValue
-    , alors : Maybe NodeValue
-    , sinon : Maybe NodeValue
+    { si : Maybe Mecanism
+    , alors : Maybe Mecanism
+    , sinon : Maybe Mecanism
     }
 
 
 clauseDecoder : Decoder Clause
 clauseDecoder =
     Decode.succeed Clause
-        |> optional "si" (nullable nodeValueDecoder) Nothing
-        |> optional "alors" (nullable nodeValueDecoder) Nothing
-        |> optional "sinon" (nullable nodeValueDecoder) Nothing
+        |> optional "si" (nullable mecanismDecoder) Nothing
+        |> optional "alors" (nullable mecanismDecoder) Nothing
+        |> optional "sinon" (nullable mecanismDecoder) Nothing
 
 
-type alias Possibilite =
+type alias PossibiliteNode =
     { choix_obligatoire : Maybe String
     , possibilites : List String
     }
 
 
-possibiliteDecoder : Decoder Possibilite
-possibiliteDecoder =
-    Decode.succeed Possibilite
+possibiliteNodeDecoder : Decoder PossibiliteNode
+possibiliteNodeDecoder =
+    Decode.succeed PossibiliteNode
         |> optional "choix obligatoire" (nullable string) Nothing
         |> required "possibilités" (list string)
+
+
+type alias RecalculNode =
+    { regle : RuleName
+    , avec : Situation
+    }
+
+
+recalculNodeDecoder : Decoder RecalculNode
+recalculNodeDecoder =
+    Decode.succeed RecalculNode
+        |> required "règle" string
+        |> required "avec" situationDecoder
 
 
 type Mecanism
@@ -151,7 +165,10 @@ type Mecanism
     | Somme (List String)
     | Moyenne (List String)
     | Variations (List Clause)
-    | UnePossibilite Possibilite
+    | UnePossibilite PossibiliteNode
+    | ToutesCesConditions (List Clause)
+    | UneDeCesConditions (List Clause)
+    | Recalcul RecalculNode
 
 
 mecanismDecoder : Decoder Mecanism
@@ -160,8 +177,11 @@ mecanismDecoder =
         [ map Expr nodeValueDecoder
         , map Somme (field "somme" (list string))
         , map Moyenne (field "moyenne" (list string))
-        , map Variations (field "variations" (list clauseDecoder))
-        , map UnePossibilite (field "une possibilité" possibiliteDecoder)
+        , map Variations (field "variations" (list (lazy (\_ -> clauseDecoder))))
+        , map UnePossibilite (field "une possibilité" possibiliteNodeDecoder)
+        , map ToutesCesConditions (field "toutes ces conditions" (list (lazy (\_ -> clauseDecoder))))
+        , map UneDeCesConditions (field "une de ces conditions" (list (lazy (\_ -> clauseDecoder))))
+        , map Recalcul (field "recalcul" recalculNodeDecoder)
         ]
 
 
@@ -171,9 +191,10 @@ rawRuleDecoder =
         |> optional "question" (nullable string) Nothing
         |> optional "résumé" (nullable string) Nothing
         |> optional "unité" (nullable string) Nothing
-        |> optional "par défaut" (nullable nodeValueDecoder) Nothing
+        |> optional "par défaut" (nullable mecanismDecoder) Nothing
         |> optional "formule" (nullable mecanismDecoder) Nothing
         |> optional "titre" (nullable string) Nothing
+        |> optional "note" (nullable string) Nothing
 
 
 rawRulesDecoder : Decoder RawRules

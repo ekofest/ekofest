@@ -230,7 +230,7 @@ viewUnit maybeRawRule =
 
 viewRules : Model -> List ( P.RuleName, P.RawRule ) -> Html Msg
 viewRules model rules =
-    ul [ class "grid grid-rows-5 grid-flow-col gap-4" ]
+    ul [ class "flex flex-col" ]
         (rules
             |> List.filterMap
                 (\( name, rule ) ->
@@ -258,7 +258,7 @@ viewQuestion model ( name, rule ) =
     rule.question
         |> Maybe.map
             (\question ->
-                li [ class "w-100 p-2 bg-green-100" ]
+                li [ class "w-100 p-2 m-2 bg-green-100" ]
                     [ div [ class "pb-2" ] [ text question ]
                     , viewInput model ( name, rule )
                     ]
@@ -281,7 +281,12 @@ viewInput model ( name, rule ) =
                     else
                         NewAnswer ( name, P.Str val )
     in
-    case ( rule.formula, Dict.get name model.situation, rule.default ) of
+    let
+        maybeNodeValue =
+            Dict.get name model.evaluations
+                |> Maybe.map (\{ nodeValue } -> nodeValue)
+    in
+    case ( rule.formula, Dict.get name model.situation, maybeNodeValue ) of
         ( Just (UnePossibilite { possibilites }), Just situationValue, _ ) ->
             select
                 [ onInput newAnswer ]
@@ -299,7 +304,11 @@ viewInput model ( name, rule ) =
                         )
                 )
 
-        ( Just (UnePossibilite { possibilites }), Nothing, Just defaultValue ) ->
+        ( Just (UnePossibilite { possibilites }), Nothing, Just nodeValue ) ->
+            let
+                _ =
+                    Debug.log "select" nodeValue
+            in
             select
                 [ onInput newAnswer ]
                 (possibilites
@@ -308,9 +317,7 @@ viewInput model ( name, rule ) =
                             option
                                 [ value possibilite
                                 , selected
-                                    (P.nodeValueToString defaultValue
-                                        == P.toConstantString possibilite
-                                    )
+                                    (P.nodeValueToString nodeValue == possibilite)
                                 ]
                                 [ text possibilite ]
                         )

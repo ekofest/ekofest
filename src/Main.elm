@@ -177,8 +177,8 @@ view model =
             div [ class "prose" ] [ text "Chargement..." ]
 
           else
-            div [ class "grid grid-cols-3" ]
-                [ div [ class "pl-8 pr-4 pb-4 col-span-2 overflow-y-auto h-[96vh]" ]
+            div [ class "grid grid-cols-3 bg-base-200 pt-8" ]
+                [ div [ class " ml-8 mr-4 mb-4 col-span-2 overflow-y-auto h-[96vh]" ]
                     [ -- [ div [ class "tabs tabs-bordered" ]
                       --     [ a [ class "tab", href "#alimentation" ] [ text "Alimentation" ]
                       --     , a [ class "tab tab-active", href "#transport" ] [ text "Transport" ]
@@ -187,7 +187,7 @@ view model =
                       --     ]
                       lazy viewCategories model
                     ]
-                , div [ class "flex flex-col pr-8 pl-4 col-span-1" ]
+                , div [ class "flex flex-col mr-8 ml-4 col-span-1" ]
                     [ lazy viewResult model
                     , lazy viewGraph model
                     ]
@@ -198,7 +198,7 @@ view model =
 viewHeader : Html Msg
 viewHeader =
     header []
-        [ div [ class "flex items-center justify-between w-full p-2 mb-4 border-b-2 border-primary" ]
+        [ div [ class "flex items-center justify-between w-full p-2 border-b-2 border-primary" ]
             [ div [ class "flex items-center" ]
                 [ img [ src "/src/assets/mimosa-svgrepo-com.svg", class "w-10 h-10" ] []
                 , p [ class "text-3xl font-bold text-black ml-2" ] [ text "Mimozo" ]
@@ -215,7 +215,7 @@ viewHeader =
 
 viewCategories : Model -> Html Msg
 viewCategories model =
-    div [ class "" ]
+    div [ class "bg-base-200" ]
         (model.questions
             |> Dict.toList
             |> List.map

@@ -192,7 +192,7 @@ viewHeader =
                 [ p [ class "text-3xl font-bold text-primary ml-2" ] [ text "EkoFest" ] ]
             , a
                 [ class "hover:text-primary cursor-pointer"
-                , href "https://github.com/ecofest/publicodes-evenements"
+                , href "https://ekofest.github.io/publicodes-evenements"
                 , target "_blank"
                 ]
                 [ text "Consulter le modèle de calcul ⧉" ]

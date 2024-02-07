@@ -470,9 +470,11 @@ viewResult model =
                     div [ class "stat" ]
                         [ div [ class "stat-title" ]
                             [ text (H.getTitle model.rawRules name) ]
-                        , div [ class "stat-value text-primary" ]
-                            [ viewEvaluation (Dict.get name model.evaluations) ]
-                        , div [ class "stat-desc text-primary" ] [ viewUnit rule ]
+                        , div [ class "flex items-baseline" ]
+                            [ div [ class "stat-value text-primary" ]
+                                [ viewEvaluation (Dict.get name model.evaluations) ]
+                            , div [ class "stat-desc text-primary ml-2 text-base" ] [ viewUnit rule ]
+                            ]
                         ]
                 )
         )
@@ -529,19 +531,23 @@ viewGraph model =
                 (\{ category, percent } ->
                     let
                         p =
-                            format { frenchLocale | decimals = Exact 0 } percent
+                            format { frenchLocale | decimals = Exact 0 } percent ++ "%"
                     in
-                    div [ class ("w-[" ++ p ++ "%] bg-primary rounded-lg h-10") ] []
-                 -- div [ class "stat" ]
-                 --     [ div [ class "stat-title" ]
-                 --         [ text (String.toUpper category) ]
-                 --     , div [ class "stat-value text-success" ]
-                 --         [ text
-                 --             (format { frenchLocale | decimals = Exact 1 } percent
-                 --                 ++ " %"
-                 --             )
-                 --         ]
-                 --     ]
+                    div [ class "stat py-2" ]
+                        [ div [ class "stat-title" ]
+                            [ text (String.toUpper category) ]
+                        , div [ class "h-8 flex items-center" ]
+                            [ div
+                                [ class "stat-value text-primary w-20 text-2xl" ]
+                                [ text
+                                    (format { frenchLocale | decimals = Exact 1 } percent
+                                        ++ " %"
+                                    )
+                                ]
+                            , div [ class "bg-primary rounded-lg h-2", style "width" p ]
+                                []
+                            ]
+                        ]
                 )
         )
 

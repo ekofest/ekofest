@@ -99,10 +99,6 @@ init rules =
             )
 
         Err e ->
-            let
-                _ =
-                    Debug.log "Error" e
-            in
             ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
 
@@ -279,7 +275,9 @@ viewQuestion model ( name, rule ) isDisabled =
                 div []
                     [ label [ class "form-control" ]
                         [ div [ class "label" ]
-                            [ span [ class "label-text text-md font-semibold" ] [ text title ] ]
+                            [ span [ class "label-text text-md font-semibold" ] [ text title ]
+                            , span [ class "label-text-alt text-md" ] [ viewUnit rule ]
+                            ]
                         , viewInput model ( name, rule ) isDisabled
                         ]
                     ]

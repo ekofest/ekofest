@@ -166,14 +166,15 @@ view model =
 
           else
             div [ class "grid grid-cols-3" ]
-                [ div [ class "pl-8 pr-4 pb-4 col-span-2 overflow-y-auto h-[96vh]" ]
+                [ div [ class "pl-8 pr-4 pb-4 col-span-2 " ]
                     [ -- [ div [ class "tabs tabs-bordered" ]
                       --     [ a [ class "tab", href "#alimentation" ] [ text "Alimentation" ]
                       --     , a [ class "tab tab-active", href "#transport" ] [ text "Transport" ]
                       --     , a [ class "tab", href "#infrascture" ] [ text "Infrastructure" ]
                       --     , a [ class "tab" ] [ text "Hébergement" ]
                       --     ]
-                      lazy viewCategories model
+                      div [ class "bg-neutral rounded-t-lg border-t border-x border-base-200 p-2 sticky top-0" ] (viewCategoriesAnchors model.categories)
+                    , lazy viewCategories model
                     ]
                 , div [ class "flex flex-col pr-8 pl-4 col-span-1" ]
                     [ lazy viewResult model
@@ -186,11 +187,11 @@ view model =
 viewHeader : Html Msg
 viewHeader =
     header []
-        [ div [ class "flex items-center justify-between w-full p-2 mb-4 border-b-2 border-primary" ]
+        [ div [ class "flex items-center justify-between w-full py-2 px-8 mb-4 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ p [ class "text-3xl font-bold text-primary ml-2" ] [ text "EkoFest" ]]
+                [ p [ class "text-3xl font-bold text-primary ml-2" ] [ text "EkoFest" ] ]
             , a
-                [ class "text-neutral"
+                [ class "hover:text-primary cursor-pointer"
                 , href "https://github.com/ecofest/publicodes-evenements"
                 , target "_blank"
                 ]
@@ -199,17 +200,31 @@ viewHeader =
         ]
 
 
+viewCategoriesAnchors : List P.RuleName -> List (Html Msg)
+viewCategoriesAnchors categories =
+    categories
+        |> List.map
+            (\category ->
+                a
+                    [ class "tab hover:text-primary cursor-pointer"
+                    , href ("#" ++ category)
+                    ]
+                    [ text (String.toUpper category) ]
+            )
+
+
 viewCategories : Model -> Html Msg
 viewCategories model =
-    div [ class "" ]
+    div [ class "bg-neutral border-x border-b border-base-200 overflow-y-auto rounded-b-md h-[87vh]" ]
         (model.questions
             |> Dict.toList
             |> List.map
                 (\( category, questions ) ->
-                    div [ class "card shadow p-4 mb-8 bg-base-100" ]
-                        [ h2 [ class "text-2xl font-bold text-accent" ] [ text (String.toUpper category) ]
-                        , div [ class "divider" ] []
-                        , div [ class "grid grid-cols-2 gap-4" ]
+                    div [ class "mb-8" ]
+                        [ div [ class "bg-base-100 p-4 mb-4 border-y border-base-200 sticky top-0", id category ]
+                            [ text (String.toUpper category)
+                            ]
+                        , div [ class "grid grid-cols-2 gap-6 px-6" ]
                             (questions
                                 |> List.filterMap
                                     (\name ->
@@ -243,7 +258,7 @@ viewQuestion model ( name, rule ) =
                 div []
                     [ label [ class "form-control" ]
                         [ div [ class "label" ]
-                            [ span [ class "label-text text-xl" ] [ text question ] ]
+                            [ span [ class "label-text text-md font-semibold" ] [ text question ] ]
                         , viewInput model ( name, rule )
                         ]
                     ]
@@ -274,7 +289,7 @@ viewInput model ( name, rule ) =
     case ( rule.formula, Dict.get name model.situation, maybeNodeValue ) of
         ( Just (UnePossibilite { possibilites }), Just situationValue, _ ) ->
             select
-                [ onInput newAnswer, class "select select-bordered select-lg" ]
+                [ onInput newAnswer, class "select select-bordered" ]
                 (possibilites
                     |> List.map
                         (\possibilite ->
@@ -291,7 +306,7 @@ viewInput model ( name, rule ) =
 
         ( Just (UnePossibilite { possibilites }), Nothing, Just nodeValue ) ->
             select
-                [ onInput newAnswer, class "select select-bordered select-lg" ]
+                [ onInput newAnswer, class "select select-bordered" ]
                 (possibilites
                     |> List.map
                         (\possibilite ->
@@ -307,7 +322,7 @@ viewInput model ( name, rule ) =
         ( _, Just (P.Num num), _ ) ->
             input
                 [ type_ "number"
-                , class "input input-bordered input-lg"
+                , class "input input-bordered"
                 , value (String.fromFloat num)
                 , onInput newAnswer
                 ]
@@ -316,7 +331,7 @@ viewInput model ( name, rule ) =
         ( _, Just (P.Str str), _ ) ->
             input
                 [ type_ "text"
-                , class "input input-bordered input-lg"
+                , class "input input-bordered"
                 , value str
                 , onInput newAnswer
                 ]
@@ -329,7 +344,7 @@ viewInput model ( name, rule ) =
         ( _, Nothing, Just (P.Num num) ) ->
             input
                 [ type_ "number"
-                , class "input input-bordered input-lg"
+                , class "input input-bordered"
                 , placeholder (String.fromFloat num)
                 , onInput newAnswer
                 ]
@@ -338,7 +353,7 @@ viewInput model ( name, rule ) =
         ( _, Nothing, Just (P.Str str) ) ->
             input
                 [ type_ "text"
-                , class "input input-bordered input-lg"
+                , class "input input-bordered"
                 , placeholder str
                 , onInput newAnswer
                 ]
@@ -397,18 +412,18 @@ viewResult model =
                                 Nothing
                     )
     in
-    div [ class "stats stats-vertical shadow border-1 w-full" ]
+    div [ class "stats stats-vertical border w-full rounded-md bg-neutral" ]
         (resultRules
             |> List.map
                 (\( name, rule ) ->
                     div [ class "stat" ]
-                        [ div [ class "stat-figure text-primary" ]
-                            [ Icons.zap ]
-                        , div [ class "stat-title" ]
+                        [ -- div [ class "stat-figure text-primary" ]
+                          -- [ Icons.zap ]
+                          div [ class "stat-title" ]
                             [ text (getTitle model name) ]
                         , div [ class "stat-value text-primary" ]
                             [ viewEvaluation (Dict.get name model.evaluations) ]
-                        , div [ class "stat-desc text-secondary" ] [ viewUnit rule ]
+                        , div [ class "stat-figure text-primary" ] [ viewUnit rule ]
                         ]
                 )
         )
@@ -467,27 +482,28 @@ viewGraph model =
                                 )
                     )
     in
-    div [ class "card shadow p-4 mt-8 bg-base-100" ]
-        [ h2 [ class "text-2xl font-bold" ] [ text "Graphique" ]
-        , div [ class "divider" ] []
-        , C.chart
-            [ CA.width 800
-            , CA.height 800
-            , CA.margin { top = 40, right = 40, bottom = 40, left = 40 }
-            , CA.domain
-                [ CA.lowest 0 CA.exactly
-                , CA.highest 100 CA.exactly
+    div [ class "card bg-neutral border rounded-md mt-8" ]
+        [ h2 [ class "bg-base-100 p-4 border-b border-base-200" ] [ text "DÉTAILS" ]
+        , div [ class "p-4" ]
+            [ C.chart
+                [ CA.width 800
+                , CA.height 800
+                , CA.margin { top = 40, right = 40, bottom = 40, left = 40 }
+                , CA.domain
+                    [ CA.lowest 0 CA.exactly
+                    , CA.highest 100 CA.exactly
+                    ]
                 ]
-            ]
-            [ C.yLabels
-                [ CA.withGrid
-                , CA.format (\v -> String.fromFloat v ++ " %")
+                [ C.yLabels
+                    [ CA.withGrid
+                    , CA.format (\v -> String.fromFloat v ++ " %")
+                    ]
+                , C.binLabels .category [ CA.moveDown 30 ]
+                , C.bars [ CA.roundTop 0.25, CA.margin 0.25 ]
+                    [ C.bar .nodeValue [ CA.color CA.brown, CA.opacity 0.8 ]
+                    ]
+                    data
                 ]
-            , C.binLabels .category [ CA.moveDown 30 ]
-            , C.bars [ CA.roundTop 0.25, CA.margin 0.25 ]
-                [ C.bar .nodeValue [ CA.color CA.darkGray, CA.opacity 0.8 ]
-                ]
-                data
             ]
         ]
 

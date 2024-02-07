@@ -309,42 +309,10 @@ viewInput model ( name, rule ) isDisabled =
     in
     case ( rule.formula, Dict.get name model.situation, maybeNodeValue ) of
         ( Just (UnePossibilite { possibilites }), Just situationValue, _ ) ->
-            select
-                [ onInput newAnswer
-                , class "select select-bordered"
-                , disabled isDisabled
-                ]
-                (possibilites
-                    |> List.map
-                        (\possibilite ->
-                            option
-                                [ value possibilite
-                                , selected
-                                    (P.nodeValueToString situationValue
-                                        == P.toConstantString possibilite
-                                    )
-                                ]
-                                [ text possibilite ]
-                        )
-                )
+            viewSelectInput model.rawRules name possibilites situationValue isDisabled
 
         ( Just (UnePossibilite { possibilites }), Nothing, Just nodeValue ) ->
-            select
-                [ onInput newAnswer
-                , class "select select-bordered"
-                , disabled isDisabled
-                ]
-                (possibilites
-                    |> List.map
-                        (\possibilite ->
-                            option
-                                [ value possibilite
-                                , selected
-                                    (P.nodeValueToString nodeValue == possibilite)
-                                ]
-                                [ text possibilite ]
-                        )
-                )
+            viewSelectInput model.rawRules name possibilites nodeValue isDisabled
 
         ( _, Just (P.Num num), _ ) ->
             input
@@ -398,6 +366,25 @@ viewInput model ( name, rule ) isDisabled =
             input [ type_ "number", onInput newAnswer ] []
 
 
+viewSelectInput : P.RawRules -> P.RuleName -> List String -> P.NodeValue -> Bool -> Html Msg
+viewSelectInput rules ruleName possibilites nodeValue isDisabled =
+    select
+        [ onInput (\v -> NewAnswer ( ruleName, P.Str v ))
+        , class "select select-bordered"
+        , disabled isDisabled
+        ]
+        (possibilites
+            |> List.map
+                (\possibilite ->
+                    option
+                        [ value possibilite
+                        , selected (P.nodeValueToString nodeValue == possibilite)
+                        ]
+                        [ text (H.getOptionTitle rules ruleName possibilite) ]
+                )
+        )
+
+
 viewBooleanRadioInput : P.RuleName -> Bool -> Html Msg
 viewBooleanRadioInput name bool =
     div [ class "form-control" ]
@@ -448,26 +435,14 @@ viewResult model =
             |> List.map
                 (\( name, rule ) ->
                     div [ class "stat" ]
-                        [ -- div [ class "stat-figure text-primary" ]
-                          -- [ Icons.zap ]
-                          div [ class "stat-title" ]
-                            [ text (getTitle model name) ]
+                        [ div [ class "stat-title" ]
+                            [ text (H.getTitle model.rawRules name) ]
                         , div [ class "stat-value text-primary" ]
                             [ viewEvaluation (Dict.get name model.evaluations) ]
                         , div [ class "stat-desc text-primary" ] [ viewUnit rule ]
                         ]
                 )
         )
-
-
-getTitle : Model -> P.RuleName -> String
-getTitle model name =
-    case Dict.get name model.rawRules of
-        Just rule ->
-            Maybe.withDefault name rule.title
-
-        Nothing ->
-            name
 
 
 viewEvaluation : Maybe Evaluation -> Html Msg

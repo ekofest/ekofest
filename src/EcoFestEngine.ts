@@ -23,19 +23,6 @@ export default class extends Engine {
         return super.setSituation(situation, options)
     }
 
-    // evaluate(value: PublicodesExpression): EvaluatedNode {
-    //     const result = super.evaluate(value)
-    //     this.elmApp.ports.evaluatedRule.send([
-    //         value,
-    //         {
-    //             nodeValue: result.nodeValue ?? null,
-    //             isNullable: result?.isNullable ?? false,
-    //             missingVariables: Object.keys(result.missingVariables),
-    //         },
-    //     ])
-    //     return result
-    // }
-
     evaluateAll(rules: RuleName[]) {
         const evaluatedRules = rules.map((rule) => {
             const result = super.evaluate(rule)

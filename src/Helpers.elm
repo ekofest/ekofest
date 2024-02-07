@@ -65,3 +65,24 @@ isInCategory category ruleName =
         |> List.head
         |> Maybe.withDefault ""
         |> (\namespace -> namespace == category)
+
+
+getTitle : P.RawRules -> P.RuleName -> String
+getTitle rules name =
+    case Dict.get name rules of
+        Just rule ->
+            Maybe.withDefault name rule.title
+
+        Nothing ->
+            name
+
+
+{-| TODO: should find a way to use the [disambiguateReference] function from
+[publicodes]
+-}
+getOptionTitle : P.RawRules -> P.RuleName -> P.RuleName -> String
+getOptionTitle rules contexte optionVal =
+    rules
+        |> Dict.get (contexte ++ " . " ++ optionVal)
+        |> Maybe.andThen (\r -> r.title)
+        |> Maybe.withDefault optionVal

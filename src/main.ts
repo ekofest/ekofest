@@ -2,9 +2,6 @@
 import { Elm } from "./Main.elm"
 import EcoFestEngine, { RuleName, Situation } from "./EcoFestEngine"
 import rules from "publicodes-evenements"
-import { utils } from "publicodes"
-
-console.log("rules", rules)
 
 let app = Elm.Main.init({
     flags: rules,

@@ -1,9 +1,4 @@
-import Engine, {
-    ASTNode,
-    EvaluatedNode,
-    PublicodesExpression,
-    Rule,
-} from "publicodes"
+import Engine, { ASTNode, PublicodesExpression, Rule } from "publicodes"
 
 export type RuleName = string
 export type PublicodeValue = string | number
@@ -48,13 +43,12 @@ export default class extends Engine {
                 rule,
                 {
                     nodeValue: result.nodeValue ?? null,
+                    // @ts-ignore
                     isNullable: result?.isNullable ?? false,
                     missingVariables: Object.keys(result.missingVariables),
                 },
             ]
         })
-
-        console.log("evaluteAll:", evaluatedRules)
         this.elmApp.ports.evaluatedRules.send(evaluatedRules)
         return evaluatedRules
     }

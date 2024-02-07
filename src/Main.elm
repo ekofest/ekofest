@@ -5,7 +5,7 @@ import Chart as C
 import Chart.Attributes as CA
 import Dict exposing (Dict)
 import Effect
-import Helpers as H exposing (resultNamespace)
+import Helpers as H
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -57,7 +57,12 @@ type alias Model =
     , questions : Dict String (List P.RuleName)
     , situation : P.Situation
     , categories : List P.RuleName
+    , currentError : Maybe AppError
     }
+
+
+type AppError
+    = DecodeError Decode.Error
 
 
 emptyModel : Model
@@ -67,6 +72,7 @@ emptyModel =
     , questions = Dict.empty
     , situation = Dict.empty
     , categories = []
+    , currentError = Nothing
     }
 
 
@@ -92,9 +98,12 @@ init rules =
                 |> Effect.evaluateAll
             )
 
-        Err _ ->
-            -- TODO: prints an error
-            ( emptyModel, Cmd.none )
+        Err e ->
+            let
+                _ =
+                    Debug.log "Error" e
+            in
+            ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
 
 
@@ -149,8 +158,8 @@ updateEvaluation ( name, encodedEvaluation ) model =
         Ok eval ->
             { model | evaluations = Dict.insert name eval model.evaluations }
 
-        Err _ ->
-            model
+        Err e ->
+            { model | currentError = Just (DecodeError e) }
 
 
 
@@ -162,21 +171,20 @@ view model =
     div []
         [ viewHeader
         , if Dict.isEmpty model.rawRules then
-            div [ class "prose" ] [ text "Chargement..." ]
+            div [ class "p-4" ]
+                [ viewError model.currentError
+                , div [ class "prose" ] [ text "Chargement..." ]
+                ]
 
           else
-            div [ class "grid grid-cols-3" ]
-                [ div [ class "pl-8 pr-4 pb-4 col-span-2 " ]
-                    [ -- [ div [ class "tabs tabs-bordered" ]
-                      --     [ a [ class "tab", href "#alimentation" ] [ text "Alimentation" ]
-                      --     , a [ class "tab tab-active", href "#transport" ] [ text "Transport" ]
-                      --     , a [ class "tab", href "#infrascture" ] [ text "Infrastructure" ]
-                      --     , a [ class "tab" ] [ text "Hébergement" ]
-                      --     ]
-                      div [ class "bg-neutral rounded-t-lg border-t border-x border-base-200 p-2 sticky top-0" ] (viewCategoriesAnchors model.categories)
+            div [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
+                [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
+                    [ ul [ class "flex flex-wrap bg-neutral rounded-t-lg border-t border-x border-base-200 p-2 sticky top-0" ]
+                        (viewCategoriesAnchors model.categories)
                     , lazy viewCategories model
                     ]
-                , div [ class "flex flex-col pr-8 pl-4 col-span-1" ]
+                , lazy viewError model.currentError
+                , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8 " ]
                     [ lazy viewResult model
                     , lazy viewGraph model
                     ]
@@ -189,7 +197,9 @@ viewHeader =
     header []
         [ div [ class "flex items-center justify-between w-full py-2 px-8 mb-4 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ p [ class "text-3xl font-bold text-primary ml-2" ] [ text "EkoFest" ] ]
+                [ div [ class "text-3xl font-bold text-primary m-2" ] [ text "EkoFest" ]
+                , span [ class "badge badge-secondary badge-outline italic" ] [ text "beta" ]
+                ]
             , a
                 [ class "hover:text-primary cursor-pointer"
                 , href "https://ekofest.github.io/publicodes-evenements"
@@ -200,16 +210,31 @@ viewHeader =
         ]
 
 
+viewError : Maybe AppError -> Html Msg
+viewError maybeError =
+    case maybeError of
+        Just (DecodeError e) ->
+            div [ class "alert alert-error" ]
+                [ Icons.error
+                , span [] [ text (Decode.errorToString e) ]
+                ]
+
+        Nothing ->
+            text ""
+
+
 viewCategoriesAnchors : List P.RuleName -> List (Html Msg)
 viewCategoriesAnchors categories =
     categories
         |> List.map
             (\category ->
-                a
-                    [ class "tab hover:text-primary cursor-pointer"
-                    , href ("#" ++ category)
+                li [ class "p-1 hover:bg-base-100 rounded-lg" ]
+                    [ a
+                        [ class "tab cursor-pointer text-xs hover:text-accent"
+                        , href ("#" ++ category)
+                        ]
+                        [ text (String.toUpper category) ]
                     ]
-                    [ text (String.toUpper category) ]
             )
 
 
@@ -224,18 +249,14 @@ viewCategories model =
                         [ div [ class "bg-base-100 p-4 mb-4 border-y border-base-200 sticky top-0", id category ]
                             [ text (String.toUpper category)
                             ]
-                        , div [ class "grid grid-cols-2 gap-6 px-6" ]
+                        , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
                             (questions
                                 |> List.filterMap
                                     (\name ->
                                         case ( Dict.get name model.rawRules, Dict.get name model.evaluations ) of
                                             ( Just rule, Just eval ) ->
-                                                if eval.isNullable then
-                                                    Nothing
-
-                                                else
-                                                    Just
-                                                        (viewQuestion model ( name, rule ))
+                                                Just
+                                                    (viewQuestion model ( name, rule ) eval.isNullable)
 
                                             _ ->
                                                 Nothing
@@ -250,24 +271,24 @@ viewCategories model =
 -- Questions
 
 
-viewQuestion : Model -> ( P.RuleName, P.RawRule ) -> Html Msg
-viewQuestion model ( name, rule ) =
-    rule.question
+viewQuestion : Model -> ( P.RuleName, P.RawRule ) -> Bool -> Html Msg
+viewQuestion model ( name, rule ) isDisabled =
+    rule.title
         |> Maybe.map
-            (\question ->
+            (\title ->
                 div []
                     [ label [ class "form-control" ]
                         [ div [ class "label" ]
-                            [ span [ class "label-text text-md font-semibold" ] [ text question ] ]
-                        , viewInput model ( name, rule )
+                            [ span [ class "label-text text-md font-semibold" ] [ text title ] ]
+                        , viewInput model ( name, rule ) isDisabled
                         ]
                     ]
             )
         |> Maybe.withDefault (text "")
 
 
-viewInput : Model -> ( P.RuleName, P.RawRule ) -> Html Msg
-viewInput model ( name, rule ) =
+viewInput : Model -> ( P.RuleName, P.RawRule ) -> Bool -> Html Msg
+viewInput model ( name, rule ) isDisabled =
     let
         newAnswer val =
             case String.toFloat val of
@@ -289,7 +310,10 @@ viewInput model ( name, rule ) =
     case ( rule.formula, Dict.get name model.situation, maybeNodeValue ) of
         ( Just (UnePossibilite { possibilites }), Just situationValue, _ ) ->
             select
-                [ onInput newAnswer, class "select select-bordered" ]
+                [ onInput newAnswer
+                , class "select select-bordered"
+                , disabled isDisabled
+                ]
                 (possibilites
                     |> List.map
                         (\possibilite ->
@@ -306,7 +330,10 @@ viewInput model ( name, rule ) =
 
         ( Just (UnePossibilite { possibilites }), Nothing, Just nodeValue ) ->
             select
-                [ onInput newAnswer, class "select select-bordered" ]
+                [ onInput newAnswer
+                , class "select select-bordered"
+                , disabled isDisabled
+                ]
                 (possibilites
                     |> List.map
                         (\possibilite ->
@@ -322,6 +349,7 @@ viewInput model ( name, rule ) =
         ( _, Just (P.Num num), _ ) ->
             input
                 [ type_ "number"
+                , disabled isDisabled
                 , class "input input-bordered"
                 , value (String.fromFloat num)
                 , onInput newAnswer
@@ -331,6 +359,7 @@ viewInput model ( name, rule ) =
         ( _, Just (P.Str str), _ ) ->
             input
                 [ type_ "text"
+                , disabled isDisabled
                 , class "input input-bordered"
                 , value str
                 , onInput newAnswer
@@ -344,6 +373,7 @@ viewInput model ( name, rule ) =
         ( _, Nothing, Just (P.Num num) ) ->
             input
                 [ type_ "number"
+                , disabled isDisabled
                 , class "input input-bordered"
                 , placeholder (String.fromFloat num)
                 , onInput newAnswer
@@ -353,6 +383,7 @@ viewInput model ( name, rule ) =
         ( _, Nothing, Just (P.Str str) ) ->
             input
                 [ type_ "text"
+                , disabled isDisabled
                 , class "input input-bordered"
                 , placeholder str
                 , onInput newAnswer
@@ -423,7 +454,7 @@ viewResult model =
                             [ text (getTitle model name) ]
                         , div [ class "stat-value text-primary" ]
                             [ viewEvaluation (Dict.get name model.evaluations) ]
-                        , div [ class "stat-figure text-primary" ] [ viewUnit rule ]
+                        , div [ class "stat-desc text-primary" ] [ viewUnit rule ]
                         ]
                 )
         )
@@ -482,7 +513,7 @@ viewGraph model =
                                 )
                     )
     in
-    div [ class "card bg-neutral border rounded-md mt-8" ]
+    div [ class "hidden lg:block bg-neutral border border-base-200 rounded-md mt-8" ]
         [ h2 [ class "bg-base-100 p-4 border-b border-base-200" ] [ text "DÉTAILS" ]
         , div [ class "p-4" ]
             [ C.chart

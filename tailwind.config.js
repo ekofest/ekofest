@@ -24,15 +24,16 @@ export default {
         themes: [
             {
                 cutsomTheme: {
-                    primary: "#bb4a02",
+                    // primary: "#bb4a02",
+                    primary: "#EF5F06",
                     secondary: "#481600",
                     accent: "#FF5F0F",
                     neutral: "#fcfcfc",
-                    "base-100": "#f6f6f6",
+                    "base-100": "#f6f5f3",
                     info: "#ffffff",
                     success: "#2dd4bf",
                     warning: "#ffffff",
-                    error: "#ffffff",
+                    error: "#ff5861",
                 },
             },
         ],

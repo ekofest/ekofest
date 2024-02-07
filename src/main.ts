@@ -3,14 +3,14 @@ import { Elm } from "./Main.elm"
 import EcoFestEngine, { RuleName, Situation } from "./EcoFestEngine"
 import rules from "publicodes-evenements"
 
+console.log("rules", rules)
+
 let app = Elm.Main.init({
     flags: rules,
     node: document.getElementById("elm-app"),
 })
 
 const engine = new EcoFestEngine(rules, app)
-
-console.log("app", engine.getParsedRules())
 
 app.ports.setSituation.subscribe((newSituation: Situation) => {
     engine.setSituation(newSituation)

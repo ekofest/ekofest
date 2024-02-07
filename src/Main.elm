@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Chart as C
-import Chart.Attributes as CA
+import Chart.Attributes as CA exposing (percent)
 import Dict exposing (Dict)
 import Effect
 import FormatNumber exposing (format)
@@ -527,16 +527,21 @@ viewGraph model =
             |> List.reverse
             |> List.map
                 (\{ category, percent } ->
-                    div [ class "stat" ]
-                        [ div [ class "stat-title" ]
-                            [ text (String.toUpper category) ]
-                        , div [ class "stat-value text-success" ]
-                            [ text
-                                (format { frenchLocale | decimals = Exact 1 } percent
-                                    ++ " %"
-                                )
-                            ]
-                        ]
+                    let
+                        p =
+                            format { frenchLocale | decimals = Exact 0 } percent
+                    in
+                    div [ class ("w-[" ++ p ++ "%] bg-primary rounded-lg h-10") ] []
+                 -- div [ class "stat" ]
+                 --     [ div [ class "stat-title" ]
+                 --         [ text (String.toUpper category) ]
+                 --     , div [ class "stat-value text-success" ]
+                 --         [ text
+                 --             (format { frenchLocale | decimals = Exact 1 } percent
+                 --                 ++ " %"
+                 --             )
+                 --         ]
+                 --     ]
                 )
         )
 

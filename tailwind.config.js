@@ -4,12 +4,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: [
-                    /* "Syne", "Istok Web",  */ "Titillium Web",
-                    "sans-serif",
-                ],
-                // serif: ["Georgia", "serif"],
-                // mono: ["Menlo", "monospace"],
+                sans: ["Titillium Web", "sans-serif"],
             },
         },
     },
@@ -21,8 +16,8 @@ export default {
                     primary: "#bb4a02",
                     secondary: "#481600",
                     accent: "#FF5F0F",
-                    neutral: "#f3f1f3",
-                    "base-100": "#f3f1f3",
+                    neutral: "#fcfcfc",
+                    "base-100": "#f6f6f6",
                     info: "#ffffff",
                     success: "#2dd4bf",
                     warning: "#ffffff",

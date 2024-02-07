@@ -166,14 +166,15 @@ view model =
 
           else
             div [ class "grid grid-cols-3" ]
-                [ div [ class "pl-8 pr-4 pb-4 col-span-2 overflow-y-auto h-[96vh]" ]
+                [ div [ class "pl-8 pr-4 pb-4 col-span-2 " ]
                     [ -- [ div [ class "tabs tabs-bordered" ]
                       --     [ a [ class "tab", href "#alimentation" ] [ text "Alimentation" ]
                       --     , a [ class "tab tab-active", href "#transport" ] [ text "Transport" ]
                       --     , a [ class "tab", href "#infrascture" ] [ text "Infrastructure" ]
                       --     , a [ class "tab" ] [ text "Hébergement" ]
                       --     ]
-                      lazy viewCategories model
+                      div [ class "bg-neutral rounded-t-lg border-t border-x border-base-200 p-2 sticky top-0" ] (viewCategoriesAnchors model.categories)
+                    , lazy viewCategories model
                     ]
                 , div [ class "flex flex-col pr-8 pl-4 col-span-1" ]
                     [ lazy viewResult model
@@ -186,9 +187,9 @@ view model =
 viewHeader : Html Msg
 viewHeader =
     header []
-        [ div [ class "flex items-center justify-between w-full p-2 mb-4 border-b-2 border-primary" ]
+        [ div [ class "flex items-center justify-between w-full p-2 mb-4 border-b-2 border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ p [ class "text-3xl font-bold text-primary ml-2" ] [ text "EkoFest" ]]
+                [ p [ class "text-3xl font-bold text-primary ml-2" ] [ text "EkoFest" ] ]
             , a
                 [ class "text-neutral"
                 , href "https://github.com/ecofest/publicodes-evenements"
@@ -199,17 +200,31 @@ viewHeader =
         ]
 
 
+viewCategoriesAnchors : List P.RuleName -> List (Html Msg)
+viewCategoriesAnchors categories =
+    categories
+        |> List.map
+            (\category ->
+                a
+                    [ class "tab hover:text-primary cursor-pointer"
+                    , href ("#" ++ category)
+                    ]
+                    [ text (String.toUpper category) ]
+            )
+
+
 viewCategories : Model -> Html Msg
 viewCategories model =
-    div [ class "" ]
+    div [ class "bg-neutral border-x border-b border-base-200 overflow-y-auto rounded-b-md h-[87vh]" ]
         (model.questions
             |> Dict.toList
             |> List.map
                 (\( category, questions ) ->
-                    div [ class "card shadow p-4 mb-8 bg-base-100" ]
-                        [ h2 [ class "text-2xl font-bold text-accent" ] [ text (String.toUpper category) ]
-                        , div [ class "divider" ] []
-                        , div [ class "grid grid-cols-2 gap-4" ]
+                    div [ class "mb-8" ]
+                        [ div [ class "bg-base-100 p-4 border-y border-base-200 sticky top-0", id category ]
+                            [ text (String.toUpper category)
+                            ]
+                        , div [ class "grid grid-cols-2 gap-4 px-4" ]
                             (questions
                                 |> List.filterMap
                                     (\name ->

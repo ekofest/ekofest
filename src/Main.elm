@@ -188,9 +188,7 @@ viewHeader =
     header []
         [ div [ class "flex items-center justify-between w-full p-2 mb-4 border-b-2 border-primary" ]
             [ div [ class "flex items-center" ]
-                [ img [ src "/src/assets/mimosa-svgrepo-com.svg", class "w-10 h-10" ] []
-                , p [ class "text-3xl font-bold text-black ml-2" ] [ text "Mimozo" ]
-                ]
+                [ p [ class "text-3xl font-bold text-primary ml-2" ] [ text "EkoFest" ]]
             , a
                 [ class "text-neutral"
                 , href "https://github.com/ecofest/publicodes-evenements"
@@ -487,7 +485,7 @@ viewGraph model =
                 ]
             , C.binLabels .category [ CA.moveDown 30 ]
             , C.bars [ CA.roundTop 0.25, CA.margin 0.25 ]
-                [ C.bar .nodeValue [ CA.color CA.yellow, CA.opacity 0.8 ]
+                [ C.bar .nodeValue [ CA.color CA.darkGray, CA.opacity 0.8 ]
                 ]
                 data
             ]

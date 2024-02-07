@@ -5,6 +5,8 @@ import Chart as C
 import Chart.Attributes as CA
 import Dict exposing (Dict)
 import Effect
+import FormatNumber exposing (format)
+import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Helpers as H
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -227,7 +229,7 @@ viewCategoriesAnchors categories =
             (\category ->
                 li [ class "p-1 hover:bg-base-100 rounded-lg" ]
                     [ a
-                        [ class "tab cursor-pointer text-xs hover:text-accent"
+                        [ class "tab cursor-pointer text-xs text-primary font-semibold"
                         , href ("#" ++ category)
                         ]
                         [ text (String.toUpper category) ]
@@ -238,12 +240,16 @@ viewCategoriesAnchors categories =
 viewCategories : Model -> Html Msg
 viewCategories model =
     div [ class "bg-neutral border-x border-b border-base-200 overflow-y-auto rounded-b-md h-[87vh]" ]
-        (model.questions
-            |> Dict.toList
+        (model.categories
             |> List.map
-                (\( category, questions ) ->
+                (\category ->
+                    let
+                        questions =
+                            Dict.get category model.questions
+                                |> Maybe.withDefault []
+                    in
                     div [ class "mb-8" ]
-                        [ div [ class "bg-base-100 p-4 mb-4 border-y border-base-200 sticky top-0", id category ]
+                        [ div [ class "text-secondary bg-gradient-to-l from-base-200 to-base-100 font-bold p-2 mb-4 border-y border-base-200 sticky top-0", id category ]
                             [ text (String.toUpper category)
                             ]
                         , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
@@ -507,7 +513,7 @@ viewGraph model =
                                         P.Num value ->
                                             Just
                                                 { category = category
-                                                , nodeValue = (value / total) * 100
+                                                , percent = (value / total) * 100
                                                 }
 
                                         _ ->
@@ -515,33 +521,54 @@ viewGraph model =
                                 )
                     )
     in
-    div [ class "hidden lg:block bg-neutral border border-base-200 rounded-md mt-8" ]
-        [ h2 [ class "bg-base-100 p-4 border-b border-base-200" ] [ text "DÉTAILS" ]
-        , div [ class "p-4" ]
-            [ C.chart
-                [ CA.width 800
-                , CA.height 800
-                , CA.margin { top = 40, right = 40, bottom = 40, left = 40 }
-                , CA.domain
-                    [ CA.lowest 0 CA.exactly
-                    , CA.highest 100 CA.exactly
-                    ]
-                ]
-                [ C.yLabels
-                    [ CA.withGrid
-                    , CA.format (\v -> String.fromFloat v ++ " %")
-                    ]
-                , C.binLabels .category [ CA.moveDown 30 ]
-                , C.bars [ CA.roundTop 0.25, CA.margin 0.25 ]
-                    [ C.bar .nodeValue [ CA.color CA.brown, CA.opacity 0.8 ]
-                    ]
-                    data
-                ]
-            ]
-        ]
+    div [ class "stats stats-vertical border w-full rounded-md bg-neutral mt-4" ]
+        (data
+            |> List.sortBy .percent
+            |> List.reverse
+            |> List.map
+                (\{ category, percent } ->
+                    div [ class "stat" ]
+                        [ div [ class "stat-title" ]
+                            [ text (String.toUpper category) ]
+                        , div [ class "stat-value text-success" ]
+                            [ text
+                                (format { frenchLocale | decimals = Exact 1 } percent
+                                    ++ " %"
+                                )
+                            ]
+                        ]
+                )
+        )
 
 
 
+-- div
+-- [ class "hidden lg:block bg-neutral border border-base-200 rounded-md mt-8" ]
+-- [ h2 [ class "bg-base-100 p-4 border-b border-base-200" ] [ text "DÉTAILS" ]
+-- , div [ class "p-4" ]
+--     [ C.chart
+--         [ CA.width 800
+--         , CA.height 800
+--         , CA.margin { top = 40, right = 40, bottom = 40, left = 40 }
+--         , CA.domain
+--             [ CA.lowest 0 CA.exactly
+--             , CA.highest 100 CA.exactly
+--             ]
+--         ]
+--         [ C.yLabels
+--             [ CA.withGrid
+--             , CA.format (\v -> String.fromFloat v ++ " %")
+--             ]
+--         , C.binLabels .category [ CA.moveDown 30 ]
+--         , C.bars [ CA.roundTop 0.25, CA.margin 0.25 ]
+--             [ C.bar .percent [ CA.color CA.brown, CA.opacity 0.8 ]
+--             ]
+--             data
+--         ]
+--     ]
+-- ]
+--
+--
 -- Subscriptions
 
 

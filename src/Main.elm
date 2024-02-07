@@ -15,7 +15,7 @@ import Json.Decode as Decode exposing (string)
 import Json.Decode.Pipeline as Decode
 import Json.Encode
 import Platform.Cmd as Cmd
-import Publicodes as P exposing (Mecanism(..))
+import Publicodes as P exposing (Mecanism(..), NodeValue(..))
 
 
 
@@ -166,14 +166,15 @@ view : Model -> Html Msg
 view model =
     div []
         [ viewHeader
-        , if Dict.isEmpty model.rawRules then
-            div [ class "p-4" ]
+        , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
+            div [ class "flex w-full justify-center" ]
                 [ viewError model.currentError
-                , div [ class "prose" ] [ text "Chargement..." ]
+                , div [ class "loading loading-lg text-primary" ] []
                 ]
 
           else
-            div [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
+            div
+                [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
                 [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
                     [ ul [ class "flex flex-wrap bg-neutral rounded-t-lg border-t border-x border-base-200 p-2 sticky top-0" ]
                         (viewCategoriesAnchors model.categories)
@@ -305,6 +306,7 @@ viewInput model ( name, rule ) isDisabled =
             Dict.get name model.evaluations
                 |> Maybe.map (\{ nodeValue } -> nodeValue)
     in
+    -- TODO: refactor this shit
     case ( rule.formula, Dict.get name model.situation, maybeNodeValue ) of
         ( Just (UnePossibilite { possibilites }), Just situationValue, _ ) ->
             viewSelectInput model.rawRules name possibilites situationValue isDisabled
@@ -333,7 +335,7 @@ viewInput model ( name, rule ) isDisabled =
                 []
 
         ( _, Just (P.Boolean bool), _ ) ->
-            viewBooleanRadioInput name bool
+            viewBooleanRadioInput name bool isDisabled
 
         -- We have a default value
         ( _, Nothing, Just (P.Num num) ) ->
@@ -357,11 +359,36 @@ viewInput model ( name, rule ) isDisabled =
                 []
 
         ( _, Nothing, Just (P.Boolean bool) ) ->
-            viewBooleanRadioInput name bool
+            viewBooleanRadioInput name bool isDisabled
 
-        _ ->
-            -- TODO: should print an error
-            input [ type_ "number", onInput newAnswer ] []
+        ( _, Just Empty, Just (P.Num num) ) ->
+            input
+                [ type_ "number"
+                , disabled isDisabled
+                , class "input input-bordered"
+                , placeholder (String.fromFloat num)
+                , onInput newAnswer
+                ]
+                []
+
+        ( _, Just Empty, Just (P.Str str) ) ->
+            input
+                [ type_ "text"
+                , disabled isDisabled
+                , class "input input-bordered"
+                , placeholder str
+                , onInput newAnswer
+                ]
+                []
+
+        ( _, Just Empty, Just (P.Boolean bool) ) ->
+            viewBooleanRadioInput name bool isDisabled
+
+        ( _, Just Empty, _ ) ->
+            input [ class "input", disabled True ] []
+
+        ( _, _, _ ) ->
+            input [ class "input", disabled True ] []
 
 
 viewSelectInput : P.RawRules -> P.RuleName -> List String -> P.NodeValue -> Bool -> Html Msg
@@ -383,8 +410,8 @@ viewSelectInput rules ruleName possibilites nodeValue isDisabled =
         )
 
 
-viewBooleanRadioInput : P.RuleName -> Bool -> Html Msg
-viewBooleanRadioInput name bool =
+viewBooleanRadioInput : P.RuleName -> Bool -> Bool -> Html Msg
+viewBooleanRadioInput name bool isDisabled =
     div [ class "form-control" ]
         [ label [ class "label cursor-pointer" ]
             [ span [ class "label-text" ] [ text "Oui" ]
@@ -392,6 +419,7 @@ viewBooleanRadioInput name bool =
                 [ class "radio"
                 , type_ "radio"
                 , checked bool
+                , disabled isDisabled
                 , onCheck (\b -> NewAnswer ( name, P.Boolean b ))
                 ]
                 []
@@ -402,6 +430,7 @@ viewBooleanRadioInput name bool =
                 [ class "radio"
                 , type_ "radio"
                 , checked (not bool)
+                , disabled isDisabled
                 , onCheck (\b -> NewAnswer ( name, P.Boolean (not b) ))
                 ]
                 []
@@ -450,7 +479,7 @@ viewEvaluation eval =
             text (P.nodeValueToString nodeValue)
 
         Nothing ->
-            text "Calcul en cours"
+            text ""
 
 
 viewUnit : P.RawRule -> Html Msg

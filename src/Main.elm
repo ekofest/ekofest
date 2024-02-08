@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Dict exposing (Dict)
 import Effect
+import File exposing (File)
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Helpers as H
@@ -125,6 +126,7 @@ type Msg
     | UpdateAllEvaluation (List ( P.RuleName, Json.Encode.Value ))
     | Evaluate ()
     | ChangeTab P.RuleName
+    | UploadedSituationFile File
     | NoOp
 
 
@@ -160,6 +162,15 @@ update msg model =
 
         ChangeTab category ->
             ( { model | currentTab = Just category }, Cmd.none )
+
+        UploadedSituationFile file ->
+            let
+                situationFromFile =
+                    file
+                        |> Decode.decodeValue File.decoder
+                        |> Decode.decodeValue P.situationDecoder
+            in
+            ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -213,12 +224,16 @@ viewHeader =
                 [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
                 , span [ class "badge badge-accent badge-outline" ] [ text "alpha" ]
                 ]
-            , a
-                [ class "hover:text-primary cursor-pointer"
-                , href "https://ekofest.github.io/publicodes-evenements"
-                , target "_blank"
+            , div [ class "flex-align space-x-4" ]
+                [ button [ class "btn px-2 py-0 min-h-0 max-h-8" ] [ text "Exporter ma simulation" ]
+                , input [ type_ "file", multiple False, class "file-input file-input-bordered file-input-primary w-full max-w-xs" ] []
+                , a
+                    [ class "hover:text-primary cursor-pointer"
+                    , href "https://ekofest.github.io/publicodes-evenements"
+                    , target "_blank"
+                    ]
+                    [ text "Consulter le modèle de calcul ⧉" ]
                 ]
-                [ text "Consulter le modèle de calcul ⧉" ]
             ]
         ]
 

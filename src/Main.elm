@@ -265,9 +265,9 @@ viewHeader =
                 [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
-            , div [ class "join" ]
+            , div [ class "join join-vertical p-2 sm:join-horizontal" ]
                 [ button [ class (btnClass ++ " btn-primary"), onClick ResetSituation ] [ text "Recommencer ↺ " ]
-                , button [ class btnClass, onClick ExportSituation ] [ text "Exporter ma simulation ↑" ]
+                , button [ class btnClass, onClick ExportSituation ] [ text "Exporter ↑" ]
                 , button
                     [ class btnClass
                     , type_ "file"
@@ -275,7 +275,7 @@ viewHeader =
                     , accept ".json"
                     , onClick SelectFile
                     ]
-                    [ text "Importer ma simulation ↓" ]
+                    [ text "Importer ↓" ]
                 ]
             ]
         ]

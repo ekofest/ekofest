@@ -5,6 +5,7 @@ import Dict exposing (Dict)
 import Effect
 import File exposing (File)
 import File.Download
+import File.Select
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Helpers as H
@@ -135,9 +136,11 @@ type Msg
     | UpdateAllEvaluation (List ( P.RuleName, Json.Encode.Value ))
     | Evaluate ()
     | ChangeTab P.RuleName
-    | UploadedFiles (List File)
+    | SelectFile
+    | UploadedFile File
     | NewEncodedSituation String
     | ExportSituation
+    | ResetSituation
     | NoOp
 
 
@@ -181,13 +184,18 @@ update msg model =
                 |> File.Download.string "situation.json" "json"
             )
 
-        UploadedFiles files ->
-            case List.head files of
-                Just file ->
-                    ( model, Task.perform NewEncodedSituation (File.toString file) )
+        UploadedFile file ->
+            ( model, Task.perform NewEncodedSituation (File.toString file) )
 
-                Nothing ->
-                    ( model, Cmd.none )
+        SelectFile ->
+            ( model, File.Select.file [ "json" ] UploadedFile )
+
+        ResetSituation ->
+            ( { model | situation = Dict.empty }
+            , Dict.empty
+                |> P.encodeSituation
+                |> Effect.setSituation
+            )
 
         NewEncodedSituation encodedSituation ->
             case Decode.decodeString P.situationDecoder encodedSituation of
@@ -247,27 +255,27 @@ view model =
 
 viewHeader : Html Msg
 viewHeader =
+    let
+        btnClass =
+            "join-item btn-sm bg-base-100 font-semibold border border-base-200 hover:bg-base-200"
+    in
     header []
         [ div [ class "flex items-center justify-between w-full px-8 mb-4 border-b border-base-200 text-primary bg-neutral" ]
             [ div [ class "flex items-center" ]
                 [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
                 , span [ class "badge badge-accent badge-outline" ] [ text "alpha" ]
                 ]
-            , div [ class "flex items-center space-x-4" ]
-                [ button [ class "btn px-2 py-0 min-h-0 max-h-8", onClick ExportSituation ] [ text "Exporter ma simulation" ]
-                , button [ class "" ]
-                    [ label [ class "form-control" ]
-                        [ span [ class "label-text" ] [ text "Choisir un fichier de situation" ]
-                        , input
-                            [ class "file-input file-input-bordered file-input-secondary w-full max-w-60 text-black min-h-0 max-h-8"
-                            , type_ "file"
-                            , multiple False
-                            , accept ".json"
-                            , on "change" (Decode.map UploadedFiles H.filesDecoder)
-                            ]
-                            []
-                        ]
+            , div [ class "join" ]
+                [ button [ class (btnClass ++ " btn-primary"), onClick ResetSituation ] [ text "Recommencer ↺ " ]
+                , button [ class btnClass, onClick ExportSituation ] [ text "Exporter ma simulation ↑" ]
+                , button
+                    [ class btnClass
+                    , type_ "file"
+                    , multiple False
+                    , accept ".json"
+                    , onClick SelectFile
                     ]
+                    [ text "Importer ma simulation ↓" ]
                 ]
             ]
         ]
@@ -276,14 +284,24 @@ viewHeader =
 viewFooter : Html Msg
 viewFooter =
     footer []
-        [ div [ class "flex items-center justify-between w-full px-4 py-4 mt-4 border-b border-base-200 text-primary bg-neutral" ]
-            [ div [ class "text-accent text-sm" ] [ text "Fait avec amour par Milou et Clemog au Moulin Bonne Vie 🏡" ]
-            , a
-                [ class "hover:text-primary cursor-pointer"
-                , href "https://ekofest.github.io/publicodes-evenements"
-                , target "_blank"
+        [ div [ class "flex flex-col gap-y-2 items-center justify-center w-full px-4 py-4 mt-4 border-t border-base-200 text-primary bg-neutral" ]
+            [ div [ class "flex gap-x-4" ]
+                [ a
+                    [ class "hover:text-primary cursor-pointer"
+                    , href "https://ekofest.github.io/publicodes-evenements"
+                    , target "_blank"
+                    ]
+                    [ text "Consulter le modèle de calcul" ]
+                , div [ class "text-base-200" ]
+                    [ text " | " ]
+                , a
+                    [ class "hover:text-primary cursor-pointer"
+                    , href "https://github.com/ekofest/ekofest"
+                    , target "_blank"
+                    ]
+                    [ text "Consulter le code source" ]
                 ]
-                [ text "Consulter le modèle de calcul ⧉" ]
+            , div [ class "text-accent text-sm" ] [ text "Fait avec amour par Milou et Clemog au Moulin Bonne Vie 🏡" ]
             ]
         ]
 
@@ -628,7 +646,15 @@ viewEvaluation eval =
 
 viewUnit : P.RawRule -> Html Msg
 viewUnit rawRule =
-    text (" " ++ Maybe.withDefault "" rawRule.unit)
+    case rawRule.unit of
+        Just "l" ->
+            text " litre"
+
+        Just unit ->
+            text (" " ++ unit)
+
+        Nothing ->
+            text ""
 
 
 viewGraph : Model -> Html Msg

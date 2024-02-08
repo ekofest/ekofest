@@ -628,7 +628,15 @@ viewEvaluation eval =
 
 viewUnit : P.RawRule -> Html Msg
 viewUnit rawRule =
-    text (" " ++ Maybe.withDefault "" rawRule.unit)
+    case rawRule.unit of
+        Just "l" ->
+            text " litre"
+
+        Just unit ->
+            text (" " ++ unit)
+
+        Nothing ->
+            text ""
 
 
 viewGraph : Model -> Html Msg

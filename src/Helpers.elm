@@ -1,6 +1,8 @@
 module Helpers exposing (..)
 
 import Dict exposing (Dict)
+import FormatNumber exposing (format)
+import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Publicodes as P
 
 
@@ -86,3 +88,8 @@ getOptionTitle rules contexte optionVal =
         |> Dict.get (contexte ++ " . " ++ optionVal)
         |> Maybe.andThen (\r -> r.title)
         |> Maybe.withDefault optionVal
+
+
+formatFloatToFrenchLocale : Int -> Float -> String
+formatFloatToFrenchLocale n =
+    format { frenchLocale | decimals = Max n }

@@ -394,7 +394,7 @@ viewInput model ( name, rule ) isDisabled =
                 [ type_ "number"
                 , disabled isDisabled
                 , class "input input-bordered"
-                , placeholder (String.fromFloat num)
+                , placeholder (H.formatFloatToFrenchLocale 1 num)
                 , onInput newAnswer
                 ]
                 []
@@ -589,7 +589,7 @@ viewGraph model =
                             [ div
                                 [ class "stat-value text-primary w-20 text-2xl" ]
                                 [ text
-                                    (format { frenchLocale | decimals = Exact 1 } percent
+                                    (H.formatFloatToFrenchLocale 1 percent
                                         ++ " %"
                                     )
                                 ]

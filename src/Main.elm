@@ -185,7 +185,7 @@ view model =
             div
                 [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
                 [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
-                    [ div [ class "tabs tabs-boxed flex flex-wrap bg-neutral rounded-t-lg border-t border-x border-base-200 p-2 sticky top-0" ]
+                    [ div [ class "flex flex-wrap gap-6 md:justify-center bg-neutral rounded-md border border-base-200 p-2 mb-4" ]
                         (viewCategoriesTabs model.categories model.currentTab)
                     , lazy viewCategory model
                     ]
@@ -235,14 +235,23 @@ viewCategoriesTabs categories currentTab =
         |> List.map
             (\category ->
                 let
-                    isActive =
-                        Maybe.withDefault "" currentTab == category
+                    activeClass =
+                        currentTab
+                            |> Maybe.andThen
+                                (\tab ->
+                                    if tab == category then
+                                        Just " bg-primary text-white border-transparent"
+
+                                    else
+                                        Nothing
+                                )
+                            |> Maybe.withDefault ""
                 in
                 a
-                    [ class "tab cursor-pointer p-1 hover:bg-base-100 rounded-lg"
-                    , classList
-                        [ ( "tab-active", isActive )
-                        ]
+                    [ class
+                        ("bg-base-100 rounded-md border border-base-200 cursor-pointer px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-white hover:border-transparent"
+                            ++ activeClass
+                        )
                     , onClick (ChangeTab category)
                     ]
                     [ text (String.toUpper category) ]
@@ -251,7 +260,7 @@ viewCategoriesTabs categories currentTab =
 
 viewCategory : Model -> Html Msg
 viewCategory model =
-    div [ class "bg-neutral border-x border-b border-base-200 overflow-y-auto rounded-b-md h-[87vh]" ]
+    div [ class "bg-neutral border-x border-b border-base-200 rounded-md" ]
         [ let
             currentCategory =
                 Maybe.withDefault "" model.currentTab
@@ -262,7 +271,7 @@ viewCategory model =
                     |> Maybe.withDefault []
           in
           div [ class "mb-8" ]
-            [ div [ class "text-secondary bg-gradient-to-l from-base-200 to-base-100 font-bold p-2 mb-4 border-y border-base-200 sticky top-0", id currentCategory ]
+            [ div [ class "pl-6 bg-secondary font-semibold p-2 mb-4 border-y border-base-200 rounded-t-md", id currentCategory ]
                 [ text (String.toUpper currentCategory)
                 ]
             , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
@@ -280,39 +289,6 @@ viewCategory model =
                 )
             ]
         ]
-
-
-viewCategories : Model -> Html Msg
-viewCategories model =
-    div [ class "bg-neutral border-x border-b border-base-200 overflow-y-auto rounded-b-md h-[87vh]" ]
-        (model.categories
-            |> List.map
-                (\category ->
-                    let
-                        questions =
-                            Dict.get category model.questions
-                                |> Maybe.withDefault []
-                    in
-                    div [ class "mb-8" ]
-                        [ div [ class "text-black bg-secondary font-semibold text-lg p-2 pl-8 mb-4 border-y border-base-200 sticky top-0", id category ]
-                            [ text (String.toUpper category)
-                            ]
-                        , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
-                            (questions
-                                |> List.filterMap
-                                    (\name ->
-                                        case ( Dict.get name model.rawRules, Dict.get name model.evaluations ) of
-                                            ( Just rule, Just eval ) ->
-                                                Just
-                                                    (viewQuestion model ( name, rule ) eval.isNullable)
-
-                                            _ ->
-                                                Nothing
-                                    )
-                            )
-                        ]
-                )
-        )
 
 
 
@@ -512,7 +488,7 @@ viewResult model =
                                 Nothing
                     )
     in
-    div [ class "stats stats-vertical border w-full rounded-md bg-neutral" ]
+    div [ class "stats stats-vertical border w-full rounded-md bg-neutral border-base-200" ]
         (resultRules
             |> List.map
                 (\( name, rule ) ->
@@ -572,7 +548,7 @@ viewGraph model =
                                 )
                     )
     in
-    div [ class "stats stats-vertical border w-full rounded-md bg-neutral mt-4" ]
+    div [ class "stats stats-vertical border border-base-200 w-full rounded-md bg-neutral mt-4" ]
         (data
             |> List.sortBy .percent
             |> List.reverse
@@ -602,33 +578,6 @@ viewGraph model =
 
 
 
--- div
--- [ class "hidden lg:block bg-neutral border border-base-200 rounded-md mt-8" ]
--- [ h2 [ class "bg-base-100 p-4 border-b border-base-200" ] [ text "DÉTAILS" ]
--- , div [ class "p-4" ]
---     [ C.chart
---         [ CA.width 800
---         , CA.height 800
---         , CA.margin { top = 40, right = 40, bottom = 40, left = 40 }
---         , CA.domain
---             [ CA.lowest 0 CA.exactly
---             , CA.highest 100 CA.exactly
---             ]
---         ]
---         [ C.yLabels
---             [ CA.withGrid
---             , CA.format (\v -> String.fromFloat v ++ " %")
---             ]
---         , C.binLabels .category [ CA.moveDown 30 ]
---         , C.bars [ CA.roundTop 0.25, CA.margin 0.25 ]
---             [ C.bar .percent [ CA.color CA.brown, CA.opacity 0.8 ]
---             ]
---             data
---         ]
---     ]
--- ]
---
---
 -- Subscriptions
 
 

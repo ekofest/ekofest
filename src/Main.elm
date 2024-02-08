@@ -14,6 +14,7 @@ import Icons
 import Json.Decode as Decode exposing (string)
 import Json.Decode.Pipeline as Decode
 import Json.Encode
+import Markdown
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
 
@@ -272,6 +273,7 @@ viewCategory model =
             [ div [ class "pl-6 bg-base-200 font-semibold p-2 mb-4 border border-base-300 rounded-t-md", id currentCategory ]
                 [ text (String.toUpper currentCategory)
                 ]
+            , div [ class "prose px-6 max-w-full" ] [ viewMarkdownCategoryDescription model currentCategory ]
             , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
                 (questions
                     |> List.filterMap
@@ -289,8 +291,16 @@ viewCategory model =
         ]
 
 
-
--- Questions
+viewMarkdownCategoryDescription : Model -> String -> Html Msg
+viewMarkdownCategoryDescription model currentCategory =
+    let
+        categoryDescription =
+            Dict.get currentCategory model.rawRules
+                |> Maybe.map (\ruleCategory -> Maybe.withDefault "" ruleCategory.description)
+                |> Maybe.withDefault ""
+    in
+    div [] <|
+        Markdown.toHtml Nothing categoryDescription
 
 
 viewQuestion : Model -> ( P.RuleName, P.RawRule ) -> Bool -> Html Msg

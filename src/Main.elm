@@ -278,21 +278,8 @@ viewCategory model =
             [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-md", id currentCategory ]
                 [ text (String.toUpper currentCategory)
                 ]
-            , div [ class "px-6 mb-4 pt-1 border-b-2 bg-orange-50" ]
-                [ div [ class "prose max-w-full" ] [ viewMarkdownCategoryDescription model currentCategory ] ]
-            , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
-                (questions
-                    |> List.filterMap
-                        (\name ->
-                            case ( Dict.get name model.rawRules, Dict.get name model.evaluations ) of
-                                ( Just rule, Just eval ) ->
-                                    Just
-                                        (viewQuestion model ( name, rule ) eval.isNullable)
-
-                                _ ->
-                                    Nothing
-                        )
-                )
+            , viewMarkdownCategoryDescription model currentCategory
+            , viewQuestions model questions
             ]
         ]
 
@@ -302,11 +289,34 @@ viewMarkdownCategoryDescription model currentCategory =
     let
         categoryDescription =
             Dict.get currentCategory model.rawRules
-                |> Maybe.map (\ruleCategory -> Maybe.withDefault "" ruleCategory.description)
-                |> Maybe.withDefault ""
+                |> Maybe.andThen (\ruleCategory -> ruleCategory.description)
     in
-    div [] <|
-        Markdown.toHtml Nothing categoryDescription
+    case categoryDescription of
+        Nothing ->
+            text ""
+
+        Just desc ->
+            div [ class "px-6 py-3 mb-4 border-b bg-orange-50" ]
+                [ div [ class "prose max-w-full" ] <|
+                    Markdown.toHtml Nothing desc
+                ]
+
+
+viewQuestions : Model -> List P.RuleName -> Html Msg
+viewQuestions model questions =
+    div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
+        (questions
+            |> List.filterMap
+                (\name ->
+                    case ( Dict.get name model.rawRules, Dict.get name model.evaluations ) of
+                        ( Just rule, Just eval ) ->
+                            Just
+                                (viewQuestion model ( name, rule ) eval.isNullable)
+
+                        _ ->
+                            Nothing
+                )
+        )
 
 
 viewQuestion : Model -> ( P.RuleName, P.RawRule ) -> Bool -> Html Msg

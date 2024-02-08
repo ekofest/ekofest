@@ -190,7 +190,7 @@ view model =
                     , lazy viewCategory model
                     ]
                 , lazy viewError model.currentError
-                , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8 " ]
+                , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
                     [ lazy viewResult model
                     , lazy viewGraph model
                     ]
@@ -271,7 +271,7 @@ viewCategory model =
                     |> Maybe.withDefault []
           in
           div [ class "mb-8" ]
-            [ div [ class "pl-6 bg-secondary font-semibold p-2 mb-4 border-y border-base-200 rounded-t-md", id currentCategory ]
+            [ div [ class "pl-6 bg-base-200 font-semibold p-2 mb-4 border border-base-300 rounded-t-md", id currentCategory ]
                 [ text (String.toUpper currentCategory)
                 ]
             , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]

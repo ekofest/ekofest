@@ -270,10 +270,11 @@ viewCategory model =
                     |> Maybe.withDefault []
           in
           div [ class "mb-8" ]
-            [ div [ class "pl-6 bg-base-200 font-semibold p-2 mb-4 border border-base-300 rounded-t-md", id currentCategory ]
+            [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-md", id currentCategory ]
                 [ text (String.toUpper currentCategory)
                 ]
-            , div [ class "prose px-6 max-w-full" ] [ viewMarkdownCategoryDescription model currentCategory ]
+            , div [ class "px-6 mb-4 pt-1 border-b-2 bg-orange-50" ]
+                [ div [ class "prose max-w-full" ] [ viewMarkdownCategoryDescription model currentCategory ] ]
             , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
                 (questions
                     |> List.filterMap

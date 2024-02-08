@@ -1,8 +1,6 @@
 module Main exposing (..)
 
 import Browser
-import Chart as C
-import Chart.Attributes as CA exposing (percent)
 import Dict exposing (Dict)
 import Effect
 import FormatNumber exposing (format)
@@ -323,7 +321,7 @@ viewInput model ( name, rule ) isDisabled =
 
                 Nothing ->
                     if String.isEmpty val then
-                        NewAnswer ( name, P.Empty )
+                        NoOp
 
                     else
                         NewAnswer ( name, P.Str val )
@@ -414,7 +412,7 @@ viewInput model ( name, rule ) isDisabled =
         ( _, Just Empty, _ ) ->
             input [ class "input", disabled True ] []
 
-        ( _, _, _ ) ->
+        _ ->
             input [ class "input", disabled True ] []
 
 

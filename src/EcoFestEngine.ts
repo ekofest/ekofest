@@ -30,8 +30,13 @@ export default class extends Engine {
                 rule,
                 {
                     nodeValue: result.nodeValue ?? null,
-                    // @ts-ignore
-                    isNullable: result?.isNullable ?? false,
+                    isNullable:
+                        // @ts-ignore
+                        result?.isNullable ??
+                        // @ts-ignore
+                        result?.explanation?.ruleDisabledByItsParent ??
+                        false,
+
                     missingVariables: Object.keys(result.missingVariables),
                 },
             ]

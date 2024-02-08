@@ -47,20 +47,6 @@ getQuestions rules categories =
             Dict.empty
 
 
-{-| NOTE: Could be dynamic, but for now we just hardcode the categories.
--}
-getCategories : P.RawRules -> List String
-getCategories _ =
-    [ "informations"
-    , "alimentation"
-    , "transport"
-    , "infrastructures"
-    , "hébergement"
-    , "énergie"
-    , "communication"
-    ]
-
-
 isInCategory : P.RuleName -> P.RuleName -> Bool
 isInCategory category ruleName =
     P.splitRuleName ruleName

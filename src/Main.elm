@@ -17,6 +17,7 @@ import Json.Encode
 import Markdown
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
+import UI
 
 
 
@@ -55,9 +56,10 @@ evaluationDecoder =
 type alias Model =
     { rawRules : P.RawRules
     , evaluations : Dict P.RuleName Evaluation
-    , questions : Dict String (List P.RuleName)
     , situation : P.Situation
-    , categories : List P.RuleName
+    , questions : UI.Questions
+    , categories : UI.Categories
+    , orderCategories : List UI.Category
     , currentError : Maybe AppError
     , currentTab : Maybe P.RuleName
     }
@@ -73,36 +75,43 @@ emptyModel =
     , evaluations = Dict.empty
     , questions = Dict.empty
     , situation = Dict.empty
-    , categories = []
+    , categories = Dict.empty
+    , orderCategories = []
     , currentError = Nothing
     , currentTab = Nothing
     }
 
 
 type alias Flags =
-    Decode.Value
+    { rules : Json.Encode.Value
+    , ui : Json.Encode.Value
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
-init rules =
-    case rules |> Decode.decodeValue P.rawRulesDecoder of
-        Ok rawRules ->
+init { rules, ui } =
+    case ( Decode.decodeValue P.rawRulesDecoder rules, Decode.decodeValue UI.uiDecoder ui ) of
+        ( Ok rawRules, Ok decodedUI ) ->
             let
-                categories =
-                    H.getCategories rawRules
+                _ =
+                    Debug.log "cat" (Dict.keys decodedUI.categories)
             in
             ( { emptyModel
                 | rawRules = rawRules
-                , questions = H.getQuestions rawRules categories
-                , categories = categories
-                , currentTab = List.head categories
+                , questions = decodedUI.questions
+                , categories = decodedUI.categories
+                , orderCategories = UI.getOrderedCategories decodedUI.categories
+                , currentTab = List.head (Dict.keys decodedUI.categories)
               }
             , Dict.toList rawRules
                 |> List.map (\( name, _ ) -> name)
                 |> Effect.evaluateAll
             )
 
-        Err e ->
+        ( Err e, _ ) ->
+            ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
+
+        ( _, Err e ) ->
             ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
 
@@ -175,16 +184,16 @@ view model =
     div []
         [ viewHeader
         , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
-            div [ class "flex w-full justify-center" ]
+            div [ class "flex flex-col w-full items-center" ]
                 [ viewError model.currentError
-                , div [ class "loading loading-lg text-primary" ] []
+                , div [ class "loading loading-lg text-primary mt-4" ] []
                 ]
 
           else
             div
                 [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
                 [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
-                    [ lazy2 viewCategoriesTabs model.categories model.currentTab
+                    [ lazy2 viewCategoriesTabs model.orderCategories model.currentTab
                     , lazy viewCategory model
                     ]
                 , lazy viewError model.currentError
@@ -218,7 +227,7 @@ viewError : Maybe AppError -> Html Msg
 viewError maybeError =
     case maybeError of
         Just (DecodeError e) ->
-            div [ class "alert alert-error" ]
+            div [ class "alert alert-error flex" ]
                 [ Icons.error
                 , span [] [ text (Decode.errorToString e) ]
                 ]
@@ -227,7 +236,7 @@ viewError maybeError =
             text ""
 
 
-viewCategoriesTabs : List P.RuleName -> Maybe P.RuleName -> Html Msg
+viewCategoriesTabs : List UI.Category -> Maybe P.RuleName -> Html Msg
 viewCategoriesTabs categories currentTab =
     div [ class "flex flex-wrap md:justify-center bg-neutral rounded-md border border-base-200 p-2 mb-4" ]
         [ ul [ class "menu menu-horizontal gap-2" ]
@@ -269,17 +278,12 @@ viewCategory model =
             currentCategory =
                 Maybe.withDefault "" model.currentTab
           in
-          let
-            questions =
-                Dict.get currentCategory model.questions
-                    |> Maybe.withDefault []
-          in
           div [ class "mb-8" ]
             [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-md", id currentCategory ]
                 [ text (String.toUpper currentCategory)
                 ]
             , viewMarkdownCategoryDescription model currentCategory
-            , viewQuestions model questions
+            , viewQuestions model (Dict.get currentCategory model.questions)
             ]
         ]
 
@@ -302,19 +306,31 @@ viewMarkdownCategoryDescription model currentCategory =
                 ]
 
 
-viewQuestions : Model -> List P.RuleName -> Html Msg
-viewQuestions model questions =
-    div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
-        (questions
-            |> List.filterMap
+viewQuestions : Model -> Maybe (List (List P.RuleName)) -> Html Msg
+viewQuestions model maybeQuestions =
+    case maybeQuestions of
+        Just questions ->
+            div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
+                (List.map (viewSubQuestions model) questions)
+
+        Nothing ->
+            -- TODO: display a message to the user
+            text ""
+
+
+viewSubQuestions : Model -> List P.RuleName -> Html Msg
+viewSubQuestions model subquestions =
+    div [ class "bg-neutral rounded-md p-4 border border-base-200" ]
+        (subquestions
+            |> List.map
                 (\name ->
                     case ( Dict.get name model.rawRules, Dict.get name model.evaluations ) of
                         ( Just rule, Just eval ) ->
-                            Just
-                                (viewQuestion model ( name, rule ) eval.isNullable)
+                            viewQuestion model ( name, rule ) eval.isNullable
 
                         _ ->
-                            Nothing
+                            -- TODO: display a message to the user
+                            text ""
                 )
         )
 
@@ -467,7 +483,7 @@ viewBooleanRadioInput name bool isDisabled =
         [ label [ class "label cursor-pointer" ]
             [ span [ class "label-text" ] [ text "Oui" ]
             , input
-                [ class "radio"
+                [ class "radio radio-sm"
                 , type_ "radio"
                 , checked bool
                 , disabled isDisabled
@@ -478,7 +494,7 @@ viewBooleanRadioInput name bool isDisabled =
         , label [ class "label cursor-pointer" ]
             [ span [ class "label-text" ] [ text "Non" ]
             , input
-                [ class "radio"
+                [ class "radio radio-sm"
                 , type_ "radio"
                 , checked (not bool)
                 , disabled isDisabled
@@ -555,8 +571,10 @@ viewGraph model =
     let
         data =
             model.categories
+                |> Dict.toList
                 |> List.filterMap
-                    (\category ->
+                    -- TODO: manage subcategories
+                    (\( category, _ ) ->
                         Dict.get category model.evaluations
                             |> Maybe.andThen
                                 (\{ nodeValue } ->

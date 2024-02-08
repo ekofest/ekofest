@@ -1,10 +1,10 @@
 // @ts-ignore
 import { Elm } from "./Main.elm"
 import EcoFestEngine, { RuleName, Situation } from "./EcoFestEngine"
-import rules from "publicodes-evenements"
+import rules, { ui } from "publicodes-evenements"
 
 let app = Elm.Main.init({
-    flags: rules,
+    flags: { rules, ui },
     node: document.getElementById("elm-app"),
 })
 

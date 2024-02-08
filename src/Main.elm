@@ -201,10 +201,10 @@ view model =
 viewHeader : Html Msg
 viewHeader =
     header []
-        [ div [ class "flex items-center justify-between w-full py-2 px-8 mb-4 border-b border-base-200 bg-neutral" ]
+        [ div [ class "flex items-center justify-between w-full px-8 mb-4 border-b border-base-200 text-primary bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ div [ class "text-3xl font-bold text-primary m-2" ] [ text "EkoFest" ]
-                , span [ class "badge badge-secondary badge-outline italic" ] [ text "beta" ]
+                [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
+                , span [ class "badge badge-accent badge-outline" ] [ text "alpha" ]
                 ]
             , a
                 [ class "hover:text-primary cursor-pointer"
@@ -294,7 +294,7 @@ viewCategories model =
                                 |> Maybe.withDefault []
                     in
                     div [ class "mb-8" ]
-                        [ div [ class "text-secondary bg-gradient-to-l from-base-200 to-base-100 font-bold p-2 mb-4 border-y border-base-200 sticky top-0", id category ]
+                        [ div [ class "text-black bg-secondary font-semibold text-lg p-2 pl-8 mb-4 border-y border-base-200 sticky top-0", id category ]
                             [ text (String.toUpper category)
                             ]
                         , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
@@ -593,7 +593,7 @@ viewGraph model =
                                         ++ " %"
                                     )
                                 ]
-                            , div [ class "bg-primary rounded-lg h-2", style "width" p ]
+                            , div [ class "bg-secondary rounded-lg h-2", style "width" p ]
                                 []
                             ]
                         ]

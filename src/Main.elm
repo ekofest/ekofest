@@ -4,9 +4,10 @@ import Browser
 import Dict exposing (Dict)
 import Effect
 import File exposing (File)
+import File.Download
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
-import Helpers as H
+import Helpers as H exposing (filesDecoder)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -17,7 +18,8 @@ import Json.Decode.Pipeline as Decode
 import Json.Encode
 import Markdown
 import Platform.Cmd as Cmd
-import Publicodes as P exposing (Mecanism(..), NodeValue(..))
+import Publicodes as P exposing (Mecanism(..), NodeValue(..), encodeSituation)
+import Task
 import UI
 
 
@@ -68,6 +70,7 @@ type alias Model =
 
 type AppError
     = DecodeError Decode.Error
+    | UnvalidSituationFile
 
 
 emptyModel : Model
@@ -126,7 +129,9 @@ type Msg
     | UpdateAllEvaluation (List ( P.RuleName, Json.Encode.Value ))
     | Evaluate ()
     | ChangeTab P.RuleName
-    | UploadedSituationFile File
+    | UploadedFiles (List File)
+    | NewEncodedSituation String
+    | ExportSituation
     | NoOp
 
 
@@ -163,14 +168,31 @@ update msg model =
         ChangeTab category ->
             ( { model | currentTab = Just category }, Cmd.none )
 
-        UploadedSituationFile file ->
-            let
-                situationFromFile =
-                    file
-                        |> Decode.decodeValue File.decoder
-                        |> Decode.decodeValue P.situationDecoder
-            in
-            ( model, Cmd.none )
+        ExportSituation ->
+            ( model
+            , P.encodeSituation model.situation
+                |> Json.Encode.encode 0
+                |> File.Download.string "situation.json" "json"
+            )
+
+        UploadedFiles files ->
+            case List.head files of
+                Just file ->
+                    ( model, Task.perform NewEncodedSituation (File.toString file) )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        NewEncodedSituation encodedSituation ->
+            case Decode.decodeString P.situationDecoder encodedSituation of
+                Ok situation ->
+                    ( { model | situation = situation }
+                    , P.encodeSituation situation
+                        |> Effect.setSituation
+                    )
+
+                Err _ ->
+                    ( { model | currentError = Just UnvalidSituationFile }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -225,8 +247,14 @@ viewHeader =
                 , span [ class "badge badge-accent badge-outline" ] [ text "alpha" ]
                 ]
             , div [ class "flex-align space-x-4" ]
-                [ button [ class "btn px-2 py-0 min-h-0 max-h-8" ] [ text "Exporter ma simulation" ]
-                , input [ type_ "file", multiple False, class "file-input file-input-bordered file-input-primary w-full max-w-xs" ] []
+                [ button [ class "btn px-2 py-0 min-h-0 max-h-8", onClick ExportSituation ] [ text "Exporter ma simulation" ]
+                , input
+                    [ type_ "file"
+                    , multiple False
+                    , on "change" (Decode.map UploadedFiles H.filesDecoder)
+                    , class "file-input file-input-bordered file-input-primary w-full max-w-xs"
+                    ]
+                    []
                 , a
                     [ class "hover:text-primary cursor-pointer"
                     , href "https://ekofest.github.io/publicodes-evenements"
@@ -245,6 +273,12 @@ viewError maybeError =
             div [ class "alert alert-error flex" ]
                 [ Icons.error
                 , span [] [ text (Decode.errorToString e) ]
+                ]
+
+        Just UnvalidSituationFile ->
+            div [ class "alert alert-error flex" ]
+                [ Icons.error
+                , span [] [ text "Le fichier renseigné ne contient pas de situation valide." ]
                 ]
 
         Nothing ->

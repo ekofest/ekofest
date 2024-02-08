@@ -1,8 +1,10 @@
 module Helpers exposing (..)
 
 import Dict exposing (Dict)
+import File exposing (File)
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
+import Json.Decode as Decode exposing (Decoder)
 import Publicodes as P
 
 
@@ -79,3 +81,8 @@ getOptionTitle rules contexte optionVal =
 formatFloatToFrenchLocale : Int -> Float -> String
 formatFloatToFrenchLocale n =
     format { frenchLocale | decimals = Max n }
+
+
+filesDecoder : Decoder (List File)
+filesDecoder =
+    Decode.at [ "target", "files" ] (Decode.list File.decoder)

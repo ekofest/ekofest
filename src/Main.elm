@@ -9,7 +9,7 @@ import Helpers as H
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Lazy exposing (lazy)
+import Html.Lazy exposing (lazy, lazy2)
 import Icons
 import Json.Decode as Decode exposing (string)
 import Json.Decode.Pipeline as Decode
@@ -184,8 +184,7 @@ view model =
             div
                 [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
                 [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
-                    [ div [ class "flex flex-wrap gap-6 md:justify-center bg-neutral rounded-md border border-base-200 p-2 mb-4" ]
-                        (viewCategoriesTabs model.categories model.currentTab)
+                    [ lazy2 viewCategoriesTabs model.categories model.currentTab
                     , lazy viewCategory model
                     ]
                 , lazy viewError model.currentError
@@ -228,33 +227,39 @@ viewError maybeError =
             text ""
 
 
-viewCategoriesTabs : List P.RuleName -> Maybe P.RuleName -> List (Html Msg)
+viewCategoriesTabs : List P.RuleName -> Maybe P.RuleName -> Html Msg
 viewCategoriesTabs categories currentTab =
-    categories
-        |> List.map
-            (\category ->
-                let
-                    activeClass =
-                        currentTab
-                            |> Maybe.andThen
-                                (\tab ->
-                                    if tab == category then
-                                        Just " bg-primary text-white border-transparent"
+    div [ class "flex flex-wrap md:justify-center bg-neutral rounded-md border border-base-200 p-2 mb-4" ]
+        [ ul [ class "menu menu-horizontal gap-2" ]
+            (categories
+                |> List.map
+                    (\category ->
+                        let
+                            activeClass =
+                                currentTab
+                                    |> Maybe.andThen
+                                        (\tab ->
+                                            if tab == category then
+                                                Just " bg-primary text-white border-transparent"
 
-                                    else
-                                        Nothing
-                                )
-                            |> Maybe.withDefault ""
-                in
-                a
-                    [ class
-                        ("bg-base-100 rounded-md border border-base-200 cursor-pointer px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-white hover:border-transparent"
-                            ++ activeClass
-                        )
-                    , onClick (ChangeTab category)
-                    ]
-                    [ text (String.toUpper category) ]
+                                            else
+                                                Nothing
+                                        )
+                                    |> Maybe.withDefault ""
+                        in
+                        li []
+                            [ a
+                                [ class
+                                    ("bg-base-100 rounded-md border border-base-200 cursor-pointer px-4 py-2 text-xs font-semibold hover:bg-primary hover:text-white hover:border-transparent"
+                                        ++ activeClass
+                                    )
+                                , onClick (ChangeTab category)
+                                ]
+                                [ text (String.toUpper category) ]
+                            ]
+                    )
             )
+        ]
 
 
 viewCategory : Model -> Html Msg

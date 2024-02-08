@@ -60,6 +60,7 @@ type alias Model =
     , situation : P.Situation
     , categories : List P.RuleName
     , currentError : Maybe AppError
+    , currentTab : Maybe P.RuleName
     }
 
 
@@ -75,6 +76,7 @@ emptyModel =
     , situation = Dict.empty
     , categories = []
     , currentError = Nothing
+    , currentTab = Nothing
     }
 
 
@@ -94,6 +96,7 @@ init rules =
                 | rawRules = rawRules
                 , questions = H.getQuestions rawRules categories
                 , categories = categories
+                , currentTab = List.head categories
               }
             , Dict.toList rawRules
                 |> List.map (\( name, _ ) -> name)
@@ -113,6 +116,7 @@ type Msg
     | UpdateEvaluation ( P.RuleName, Json.Encode.Value )
     | UpdateAllEvaluation (List ( P.RuleName, Json.Encode.Value ))
     | Evaluate ()
+    | ChangeTab P.RuleName
     | NoOp
 
 
@@ -146,6 +150,9 @@ update msg model =
                 |> Effect.evaluateAll
             )
 
+        ChangeTab category ->
+            ( { model | currentTab = Just category }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -178,9 +185,9 @@ view model =
             div
                 [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
                 [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
-                    [ ul [ class "flex flex-wrap bg-neutral rounded-t-lg border-t border-x border-base-200 p-2 sticky top-0" ]
-                        (viewCategoriesAnchors model.categories)
-                    , lazy viewCategories model
+                    [ div [ class "tabs tabs-boxed flex flex-wrap bg-neutral rounded-t-lg border-t border-x border-base-200 p-2 sticky top-0" ]
+                        (viewCategoriesTabs model.categories model.currentTab)
+                    , lazy viewCategory model
                     ]
                 , lazy viewError model.currentError
                 , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8 " ]
@@ -222,19 +229,57 @@ viewError maybeError =
             text ""
 
 
-viewCategoriesAnchors : List P.RuleName -> List (Html Msg)
-viewCategoriesAnchors categories =
+viewCategoriesTabs : List P.RuleName -> Maybe P.RuleName -> List (Html Msg)
+viewCategoriesTabs categories currentTab =
     categories
         |> List.map
             (\category ->
-                li [ class "p-1 hover:bg-base-100 rounded-lg" ]
-                    [ a
-                        [ class "tab cursor-pointer text-xs text-primary font-semibold"
-                        , href ("#" ++ category)
+                let
+                    isActive =
+                        Maybe.withDefault "" currentTab == category
+                in
+                a
+                    [ class "tab cursor-pointer p-1 hover:bg-base-100 rounded-lg"
+                    , classList
+                        [ ( "tab-active", isActive )
                         ]
-                        [ text (String.toUpper category) ]
+                    , onClick (ChangeTab category)
                     ]
+                    [ text (String.toUpper category) ]
             )
+
+
+viewCategory : Model -> Html Msg
+viewCategory model =
+    div [ class "bg-neutral border-x border-b border-base-200 overflow-y-auto rounded-b-md h-[87vh]" ]
+        [ let
+            currentCategory =
+                Maybe.withDefault "" model.currentTab
+          in
+          let
+            questions =
+                Dict.get currentCategory model.questions
+                    |> Maybe.withDefault []
+          in
+          div [ class "mb-8" ]
+            [ div [ class "text-secondary bg-gradient-to-l from-base-200 to-base-100 font-bold p-2 mb-4 border-y border-base-200 sticky top-0", id currentCategory ]
+                [ text (String.toUpper currentCategory)
+                ]
+            , div [ class "grid grid-cols-1 lg:grid-cols-2 gap-6 px-6" ]
+                (questions
+                    |> List.filterMap
+                        (\name ->
+                            case ( Dict.get name model.rawRules, Dict.get name model.evaluations ) of
+                                ( Just rule, Just eval ) ->
+                                    Just
+                                        (viewQuestion model ( name, rule ) eval.isNullable)
+
+                                _ ->
+                                    Nothing
+                        )
+                )
+            ]
+        ]
 
 
 viewCategories : Model -> Html Msg
@@ -442,6 +487,10 @@ viewBooleanRadioInput name bool isDisabled =
                 []
             ]
         ]
+
+
+
+-- Results
 
 
 viewResult : Model -> Html Msg

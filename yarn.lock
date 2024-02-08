@@ -1153,10 +1153,10 @@ process@^0.11.1:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
-publicodes-evenements@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.4.1.tgz#7a8372bb19459df937ade3840bc72334b626a08c"
-  integrity sha512-VyH8LHYD+zpn6TXI/z1BckEgyeZX5sUx3HcwqTqqsiQs8k/7MpHb29woVa/UcjxnE8BxbPs9QtAjxDsWJJH2NQ==
+publicodes-evenements@^0.4.3:
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.4.3.tgz#7c7c2ac5f1bc8ccaa51e370f979acdb915ae53dc"
+  integrity sha512-kDJ4YSm7JRSHMRtQ/Ppq2ZhykTzg4Cx10KBxbMXJktxPtSN/nDfkFkWOGDZt9jlfvf4crO+X6PyodALcx+t4Cg==
 
 publicodes@^1.0.0-beta.77:
   version "1.0.0-beta.77"

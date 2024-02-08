@@ -7,7 +7,7 @@ import File exposing (File)
 import File.Download
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
-import Helpers as H exposing (filesDecoder)
+import Helpers as H
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -18,7 +18,7 @@ import Json.Decode.Pipeline as Decode
 import Json.Encode
 import Markdown
 import Platform.Cmd as Cmd
-import Publicodes as P exposing (Mecanism(..), NodeValue(..), encodeSituation)
+import Publicodes as P exposing (Mecanism(..), NodeValue(..))
 import Task
 import UI
 
@@ -89,33 +89,39 @@ emptyModel =
 type alias Flags =
     { rules : Json.Encode.Value
     , ui : Json.Encode.Value
+    , situation : Json.Encode.Value
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
-init { rules, ui } =
-    case ( Decode.decodeValue P.rawRulesDecoder rules, Decode.decodeValue UI.uiDecoder ui ) of
-        ( Ok rawRules, Ok decodedUI ) ->
-            let
-                _ =
-                    Debug.log "cat" (Dict.keys decodedUI.categories)
-            in
+init flags =
+    case
+        ( Decode.decodeValue P.rawRulesDecoder flags.rules
+        , Decode.decodeValue UI.uiDecoder flags.ui
+        , Decode.decodeValue P.situationDecoder flags.situation
+        )
+    of
+        ( Ok rawRules, Ok ui, Ok situation ) ->
             ( { emptyModel
                 | rawRules = rawRules
-                , questions = decodedUI.questions
-                , categories = decodedUI.categories
-                , orderCategories = UI.getOrderedCategories decodedUI.categories
-                , currentTab = List.head (Dict.keys decodedUI.categories)
+                , questions = ui.questions
+                , categories = ui.categories
+                , situation = situation
+                , orderCategories = UI.getOrderedCategories ui.categories
+                , currentTab = List.head (Dict.keys ui.categories)
               }
             , Dict.toList rawRules
                 |> List.map (\( name, _ ) -> name)
                 |> Effect.evaluateAll
             )
 
-        ( Err e, _ ) ->
+        ( Err e, _, _ ) ->
             ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
-        ( _, Err e ) ->
+        ( _, Err e, _ ) ->
+            ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
+
+        ( _, _, Err e ) ->
             ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
 

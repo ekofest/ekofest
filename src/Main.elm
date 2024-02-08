@@ -263,7 +263,7 @@ viewHeader =
         [ div [ class "flex items-center justify-between w-full px-8 mb-4 border-b border-base-200 text-primary bg-neutral" ]
             [ div [ class "flex items-center" ]
                 [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
-                , span [ class "badge badge-accent badge-outline" ] [ text "alpha" ]
+                , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
             , div [ class "join" ]
                 [ button [ class (btnClass ++ " btn-primary"), onClick ResetSituation ] [ text "Recommencer ↺ " ]

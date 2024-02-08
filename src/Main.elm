@@ -241,6 +241,7 @@ view model =
                     , lazy viewGraph model
                     ]
                 ]
+        , viewFooter
         ]
 
 
@@ -252,22 +253,37 @@ viewHeader =
                 [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
                 , span [ class "badge badge-accent badge-outline" ] [ text "alpha" ]
                 ]
-            , div [ class "flex-align space-x-4" ]
+            , div [ class "flex items-center space-x-4" ]
                 [ button [ class "btn px-2 py-0 min-h-0 max-h-8", onClick ExportSituation ] [ text "Exporter ma simulation" ]
-                , input
-                    [ type_ "file"
-                    , multiple False
-                    , on "change" (Decode.map UploadedFiles H.filesDecoder)
-                    , class "file-input file-input-bordered file-input-primary w-full max-w-xs"
+                , button [ class "" ]
+                    [ label [ class "form-control" ]
+                        [ span [ class "label-text" ] [ text "Choisir un fichier de situation" ]
+                        , input
+                            [ class "file-input file-input-bordered file-input-secondary w-full max-w-60 text-black min-h-0 max-h-8"
+                            , type_ "file"
+                            , multiple False
+                            , accept ".json"
+                            , on "change" (Decode.map UploadedFiles H.filesDecoder)
+                            ]
+                            []
+                        ]
                     ]
-                    []
-                , a
-                    [ class "hover:text-primary cursor-pointer"
-                    , href "https://ekofest.github.io/publicodes-evenements"
-                    , target "_blank"
-                    ]
-                    [ text "Consulter le modèle de calcul ⧉" ]
                 ]
+            ]
+        ]
+
+
+viewFooter : Html Msg
+viewFooter =
+    footer []
+        [ div [ class "flex items-center justify-between w-full px-4 py-4 mt-4 border-b border-base-200 text-primary bg-neutral" ]
+            [ div [ class "text-accent text-sm" ] [ text "Fait avec amour par Milou et Clemog au Moulin Bonne Vie 🏡" ]
+            , a
+                [ class "hover:text-primary cursor-pointer"
+                , href "https://ekofest.github.io/publicodes-evenements"
+                , target "_blank"
+                ]
+                [ text "Consulter le modèle de calcul ⧉" ]
             ]
         ]
 

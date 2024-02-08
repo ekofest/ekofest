@@ -6,6 +6,7 @@ import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Json.Decode as Decode exposing (Decoder, field, lazy, list, map, nullable, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
+import Svg exposing (desc)
 
 
 type alias RuleName =
@@ -115,6 +116,7 @@ encodeSituation situation =
 
 type alias RawRule =
     { question : Maybe String
+    , description : Maybe String
     , summary : Maybe String
     , unit : Maybe String
     , default : Maybe Mecanism
@@ -198,6 +200,7 @@ rawRuleDecoder : Decoder RawRule
 rawRuleDecoder =
     Decode.succeed RawRule
         |> optional "question" (nullable string) Nothing
+        |> optional "description" (nullable string) Nothing
         |> optional "résumé" (nullable string) Nothing
         |> optional "unité" (nullable string) Nothing
         |> optional "par défaut" (nullable mecanismDecoder) Nothing

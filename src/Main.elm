@@ -559,7 +559,7 @@ viewSelectInput rules ruleName possibilites nodeValue isDisabled =
                 (\possibilite ->
                     option
                         [ value possibilite
-                        , selected (P.nodeValueToString nodeValue == possibilite)
+                        , selected (H.getStringFromSituation nodeValue == possibilite)
                         ]
                         [ text (H.getOptionTitle rules ruleName possibilite) ]
                 )

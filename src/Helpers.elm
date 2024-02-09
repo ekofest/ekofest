@@ -6,6 +6,7 @@ import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Json.Decode as Decode exposing (Decoder)
 import Publicodes as P
+import Regex
 
 
 resultNamespace : P.RuleName
@@ -65,6 +66,17 @@ getTitle rules name =
 
         Nothing ->
             name
+
+
+getStringFromSituation : P.NodeValue -> String
+getStringFromSituation stringValue =
+    let
+        regex =
+            Maybe.withDefault Regex.never (Regex.fromString "^'|'$")
+    in
+    stringValue
+        |> P.nodeValueToString
+        |> Regex.replace regex (\_ -> "")
 
 
 {-| TODO: should find a way to use the [disambiguateReference] function from

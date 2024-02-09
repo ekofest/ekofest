@@ -191,7 +191,7 @@ update msg model =
             ( model
             , P.encodeSituation model.situation
                 |> Json.Encode.encode 0
-                |> File.Download.string "situation.json" "json"
+                |> File.Download.string "simulation-ekofest.json" "json"
             )
 
         UploadedFile file ->

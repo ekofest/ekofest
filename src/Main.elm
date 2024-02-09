@@ -430,16 +430,39 @@ viewQuestion model ( name, rule ) isDisabled =
         |> Maybe.map
             (\title ->
                 div []
-                    [ label [ class "form-control" ]
+                    [ label [ class "form-control mb-1" ]
                         [ div [ class "label" ]
                             [ span [ class "label-text text-md font-semibold" ] [ text title ]
                             , span [ class "label-text-alt text-md" ] [ viewUnit rule ]
                             ]
-                        , viewInput model ( name, rule ) isDisabled
+                        , if name == "transport . public . parts totales" then
+                            viewCustomTransportTotal model name
+
+                          else
+                            viewInput model ( name, rule ) isDisabled
                         ]
                     ]
             )
         |> Maybe.withDefault (text "")
+
+
+viewCustomTransportTotal : Model -> P.RuleName -> Html Msg
+viewCustomTransportTotal model name =
+    let
+        maybeNodeValue =
+            Dict.get name model.evaluations
+                |> Maybe.map (\{ nodeValue } -> nodeValue)
+    in
+    case maybeNodeValue of
+        Just (P.Num num) ->
+            if num == 100 then
+                div [ class "text-end text-success" ] [ text "100 % ✅" ]
+
+            else
+                div [ class "text-end text-error" ] [ text (H.formatFloatToFrenchLocale 1 num ++ " %") ]
+
+        _ ->
+            text ""
 
 
 viewInput : Model -> ( P.RuleName, P.RawRule ) -> Bool -> Html Msg
@@ -463,88 +486,105 @@ viewInput model ( name, rule ) isDisabled =
                 |> Maybe.map (\{ nodeValue } -> nodeValue)
     in
     -- TODO: refactor this shit
-    case ( rule.formula, Dict.get name model.situation, maybeNodeValue ) of
-        ( Just (UnePossibilite { possibilites }), Just situationValue, _ ) ->
+    case ( ( rule.formula, rule.unit ), Dict.get name model.situation, maybeNodeValue ) of
+        -- We have the value in the situation
+        ( ( Just (UnePossibilite { possibilites }), _ ), Just situationValue, _ ) ->
             viewSelectInput model.rawRules name possibilites situationValue isDisabled
 
-        ( Just (UnePossibilite { possibilites }), Nothing, Just nodeValue ) ->
+        ( ( Just (UnePossibilite { possibilites }), _ ), Nothing, Just nodeValue ) ->
             viewSelectInput model.rawRules name possibilites nodeValue isDisabled
 
+        ( ( _, Just "%" ), Just (P.Num num), _ ) ->
+            viewSliderInput num newAnswer isDisabled
+
+        ( ( _, Just "%" ), Nothing, Just (P.Num num) ) ->
+            viewSliderInput num newAnswer isDisabled
+
         ( _, Just (P.Num num), _ ) ->
-            input
-                [ type_ "number"
-                , disabled isDisabled
-                , class "input input-bordered"
-                , value (String.fromFloat num)
-                , onInput newAnswer
-                ]
-                []
+            viewNumberInput num newAnswer isDisabled
 
         ( _, Just (P.Str str), _ ) ->
-            input
-                [ type_ "text"
-                , disabled isDisabled
-                , class "input input-bordered"
-                , value str
-                , onInput newAnswer
-                ]
-                []
+            viewTextInput str newAnswer isDisabled
 
         ( _, Just (P.Boolean bool), _ ) ->
             viewBooleanRadioInput name bool isDisabled
 
         -- We have a default value
         ( _, Nothing, Just (P.Num num) ) ->
-            input
-                [ type_ "number"
-                , disabled isDisabled
-                , class "input input-bordered"
-                , placeholder (H.formatFloatToFrenchLocale 1 num)
-                , onInput newAnswer
-                ]
-                []
+            viewNumberInputOnlyPlaceHolder num newAnswer isDisabled
 
         ( _, Nothing, Just (P.Str str) ) ->
-            input
-                [ type_ "text"
-                , disabled isDisabled
-                , class "input input-bordered"
-                , placeholder str
-                , onInput newAnswer
-                ]
-                []
+            viewTextInputOnlyPlaceHolder str newAnswer isDisabled
 
         ( _, Nothing, Just (P.Boolean bool) ) ->
             viewBooleanRadioInput name bool isDisabled
 
         ( _, Just Empty, Just (P.Num num) ) ->
-            input
-                [ type_ "number"
-                , disabled isDisabled
-                , class "input input-bordered"
-                , placeholder (String.fromFloat num)
-                , onInput newAnswer
-                ]
-                []
+            viewNumberInputOnlyPlaceHolder num newAnswer isDisabled
 
         ( _, Just Empty, Just (P.Str str) ) ->
-            input
-                [ type_ "text"
-                , disabled isDisabled
-                , class "input input-bordered"
-                , placeholder str
-                , onInput newAnswer
-                ]
-                []
+            viewTextInputOnlyPlaceHolder str newAnswer isDisabled
 
         ( _, Just Empty, Just (P.Boolean bool) ) ->
             viewBooleanRadioInput name bool isDisabled
 
         ( _, Just Empty, _ ) ->
-            input [ class "input", disabled True ] []
+            viewDisabledInput
 
         _ ->
-            input [ class "input", disabled True ] []
+            viewDisabledInput
+
+
+viewNumberInput : Float -> (String -> Msg) -> Bool -> Html Msg
+viewNumberInput num newAnswer isDisabled =
+    div [ class "flex flex-row-reverse" ]
+        [ input
+            [ type_ "number"
+            , disabled isDisabled
+            , class "input input-bordered w-1/2"
+            , value (String.fromFloat num)
+            , onInput newAnswer
+            ]
+            []
+        ]
+
+
+viewNumberInputOnlyPlaceHolder : Float -> (String -> Msg) -> Bool -> Html Msg
+viewNumberInputOnlyPlaceHolder num newAnswer isDisabled =
+    div [ class "flex flex-row-reverse" ]
+        [ input
+            [ type_ "number"
+            , disabled isDisabled
+            , class "input input-bordered w-1/2"
+            , placeholder (String.fromFloat num)
+            , onInput newAnswer
+            ]
+            []
+        ]
+
+
+viewTextInput : String -> (String -> Msg) -> Bool -> Html Msg
+viewTextInput str newAnswer isDisabled =
+    input
+        [ type_ "text"
+        , disabled isDisabled
+        , class "input input-bordered"
+        , value str
+        , onInput newAnswer
+        ]
+        []
+
+
+viewTextInputOnlyPlaceHolder : String -> (String -> Msg) -> Bool -> Html Msg
+viewTextInputOnlyPlaceHolder str newAnswer isDisabled =
+    input
+        [ type_ "text"
+        , disabled isDisabled
+        , class "input input-bordered"
+        , placeholder str
+        , onInput newAnswer
+        ]
+        []
 
 
 viewSelectInput : P.RawRules -> P.RuleName -> List String -> P.NodeValue -> Bool -> Html Msg
@@ -592,6 +632,30 @@ viewBooleanRadioInput name bool isDisabled =
                 []
             ]
         ]
+
+
+viewSliderInput : Float -> (String -> Msg) -> Bool -> Html Msg
+viewSliderInput num newAnswer isDisabled =
+    div [ class "flex flex-row" ]
+        [ input
+            [ type_ "range"
+            , disabled isDisabled
+            , class "range range-xs my-2"
+            , value (String.fromFloat num)
+            , onInput newAnswer
+            , Html.Attributes.min "0"
+            , Html.Attributes.max "100"
+
+            -- Should use `plancher` and `plafond` attributes
+            ]
+            []
+        , span [ class "ml-4" ] [ text (String.fromFloat num) ]
+        ]
+
+
+viewDisabledInput : Html Msg
+viewDisabledInput =
+    input [ class "input", disabled True ] []
 
 
 

@@ -778,7 +778,7 @@ viewGraph model =
                     in
                     div [ class "stat py-2 cursor-pointer", onClick (SetSubCategoryGraphStatus category (not subCatHidden)) ]
                         [ div [ class "stat-title" ]
-                            [ text (String.toUpper category) ]
+                            [ viewCategoryArrow subCatHidden, span [] [ text (String.toUpper category) ] ]
                         , div []
                             [ div [ class "h-8 flex items-center" ]
                                 [ div
@@ -791,11 +791,20 @@ viewGraph model =
                                 , div [ class "bg-secondary rounded-lg h-2", style "width" p ]
                                     []
                                 ]
-                            , div [ class "", hidden subCatHidden ] [ text "coucou" ]
+                            , div [ class "", hidden subCatHidden ] [ text "Détail bientôt disponible" ]
                             ]
                         ]
                 )
         )
+
+
+viewCategoryArrow : Bool -> Html Msg
+viewCategoryArrow subCatHidden =
+    if subCatHidden then
+        span [ class "mr-2" ] [ text "▶" ]
+
+    else
+        span [ class "mr-2" ] [ text "▼" ]
 
 
 

@@ -791,7 +791,7 @@ viewGraph model =
                                 , div [ class "bg-secondary rounded-lg h-2", style "width" p ]
                                     []
                                 ]
-                            , div [ class "", hidden subCatHidden ] [ text "Détail bientôt disponible" ]
+                            , div [ class "", hidden subCatHidden ] [ div [ class "card border-x-0 bg-base-100 p-4", style "boxShadow" "0px 6px 6px -2px rgba(21, 3, 35, 0.05) inset" ] [ text "Détail bientôt disponible" ] ]
                             ]
                         ]
                 )

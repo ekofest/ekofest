@@ -66,6 +66,7 @@ type alias Model =
     , orderCategories : List UI.Category
     , currentError : Maybe AppError
     , currentTab : Maybe P.RuleName
+    , openedCategories : Dict P.RuleName Bool
     }
 
 
@@ -84,6 +85,7 @@ emptyModel =
     , orderCategories = []
     , currentError = Nothing
     , currentTab = Nothing
+    , openedCategories = Dict.empty
     }
 
 
@@ -136,6 +138,7 @@ type Msg
     | UpdateAllEvaluation (List ( P.RuleName, Json.Encode.Value ))
     | Evaluate ()
     | ChangeTab P.RuleName
+    | SetSubCategoryGraphStatus P.RuleName Bool
     | SelectFile
     | UploadedFile File
     | NewEncodedSituation String
@@ -176,6 +179,13 @@ update msg model =
 
         ChangeTab category ->
             ( { model | currentTab = Just category }, Cmd.none )
+
+        SetSubCategoryGraphStatus category status ->
+            let
+                newOpenedCategories =
+                    Dict.insert category status model.openedCategories
+            in
+            ( { model | openedCategories = newOpenedCategories }, Cmd.none )
 
         ExportSituation ->
             ( model
@@ -761,19 +771,27 @@ viewGraph model =
                         p =
                             format { frenchLocale | decimals = Exact 0 } percent ++ "%"
                     in
-                    div [ class "stat py-2" ]
+                    let
+                        subCatHidden =
+                            Dict.get category model.openedCategories
+                                |> Maybe.withDefault True
+                    in
+                    div [ class "stat py-2 cursor-pointer", onClick (SetSubCategoryGraphStatus category (not subCatHidden)) ]
                         [ div [ class "stat-title" ]
                             [ text (String.toUpper category) ]
-                        , div [ class "h-8 flex items-center" ]
-                            [ div
-                                [ class "stat-value text-primary w-20 text-2xl" ]
-                                [ text
-                                    (H.formatFloatToFrenchLocale 1 percent
-                                        ++ " %"
-                                    )
+                        , div []
+                            [ div [ class "h-8 flex items-center" ]
+                                [ div
+                                    [ class "stat-value text-primary w-20 text-2xl" ]
+                                    [ text
+                                        (H.formatFloatToFrenchLocale 1 percent
+                                            ++ " %"
+                                        )
+                                    ]
+                                , div [ class "bg-secondary rounded-lg h-2", style "width" p ]
+                                    []
                                 ]
-                            , div [ class "bg-secondary rounded-lg h-2", style "width" p ]
-                                []
+                            , div [ class "", hidden subCatHidden ] [ text "coucou" ]
                             ]
                         ]
                 )

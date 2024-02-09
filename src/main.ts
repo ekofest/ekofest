@@ -10,7 +10,7 @@ let app = Elm.Main.init({
     node: document.getElementById("elm-app"),
 })
 
-const engine = new EcoFestEngine(rules, app)
+const engine = new EcoFestEngine(rules, app).setSituation(situation)
 
 app.ports.setSituation.subscribe((newSituation: Situation) => {
     engine.setSituation(newSituation)

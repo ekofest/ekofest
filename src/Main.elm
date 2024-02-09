@@ -109,7 +109,7 @@ init flags =
                 , categories = ui.categories
                 , situation = situation
                 , orderCategories = UI.getOrderedCategories ui.categories
-                , currentTab = List.head (Dict.keys ui.categories)
+                , currentTab = List.head (UI.getOrderedCategories ui.categories)
               }
             , Dict.toList rawRules
                 |> List.map (\( name, _ ) -> name)

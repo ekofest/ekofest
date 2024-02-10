@@ -20,6 +20,9 @@ import Json.Encode
 import Markdown
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
+import Simple.Animation as Animation exposing (Animation)
+import Simple.Animation.Animated as Animated
+import Simple.Animation.Property as AnimProp
 import Task
 import UI
 
@@ -776,23 +779,25 @@ viewGraph model =
                             Dict.get category model.openedCategories
                                 |> Maybe.withDefault True
                     in
-                    div [ class "stat py-2 cursor-pointer", onClick (SetSubCategoryGraphStatus category (not subCatHidden)) ]
-                        [ div [ class "stat-title" ]
-                            [ viewCategoryArrow subCatHidden, span [] [ text (String.toUpper category) ] ]
-                        , div []
-                            [ div [ class "h-8 flex items-center" ]
-                                [ div
-                                    [ class "stat-value text-primary w-20 text-2xl" ]
-                                    [ text
-                                        (H.formatFloatToFrenchLocale 1 percent
-                                            ++ " %"
-                                        )
+                    div []
+                        [ div [ class "stat py-2 cursor-pointer relative z-10 bg-white", onClick (SetSubCategoryGraphStatus category (not subCatHidden)) ]
+                            [ div [ class "stat-title" ]
+                                [ viewCategoryArrow subCatHidden, span [] [ text (String.toUpper category) ] ]
+                            , div []
+                                [ div [ class "h-8 flex items-center" ]
+                                    [ div
+                                        [ class "stat-value text-primary w-20 text-2xl" ]
+                                        [ text
+                                            (H.formatFloatToFrenchLocale 1 percent
+                                                ++ " %"
+                                            )
+                                        ]
+                                    , div [ class "bg-secondary rounded-lg h-2", style "width" p ]
+                                        []
                                     ]
-                                , div [ class "bg-secondary rounded-lg h-2", style "width" p ]
-                                    []
                                 ]
-                            , div [ class "", hidden subCatHidden ] [ div [ class "card border-x-0 bg-base-100 p-4", style "boxShadow" "0px 6px 6px -2px rgba(21, 3, 35, 0.05) inset" ] [ text "Détail bientôt disponible" ] ]
                             ]
+                        , Animated.div showSubCat [ class "relative z-0", hidden subCatHidden ] [ div [ class "border-x-0 bg-base-50 p-4", style "boxShadow" "0px 6px 6px -2px rgba(21, 3, 35, 0.05) inset" ] [ text "Détail bientôt disponible" ] ]
                         ]
                 )
         )
@@ -805,6 +810,16 @@ viewCategoryArrow subCatHidden =
 
     else
         span [ class "mr-2" ] [ text "▼" ]
+
+
+showSubCat : Animation
+showSubCat =
+    Animation.fromTo
+        { duration = 250
+        , options = []
+        }
+        [ AnimProp.opacity 0.6, AnimProp.y -50 ]
+        [ AnimProp.opacity 1, AnimProp.y 0 ]
 
 
 

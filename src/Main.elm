@@ -375,19 +375,47 @@ viewCategoriesTabs categories currentTab =
 
 viewCategory : Model -> Html Msg
 viewCategory model =
-    div [ class "bg-neutral border-x border-b border-base-200 rounded-md" ]
-        [ let
-            currentCategory =
-                Maybe.withDefault "" model.currentTab
-          in
-          div [ class "mb-8" ]
-            [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-md", id currentCategory ]
-                [ text (String.toUpper currentCategory)
-                ]
-            , viewMarkdownCategoryDescription model currentCategory
-            , viewQuestions model (Dict.get currentCategory model.questions)
-            ]
-        ]
+    let
+        currentCategory =
+            Maybe.withDefault "" model.currentTab
+    in
+    div [ class "bg-neutral border-x border-b border-base-200 rounded-md " ]
+        (model.categories
+            |> Dict.toList
+            |> List.map
+                (\( category, _ ) ->
+                    let
+                        toShow =
+                            currentCategory == category
+                    in
+                    Animated.div showCategoryContent
+                        [ class "mb-8"
+                        , style "display"
+                            (if toShow then
+                                "block"
+
+                             else
+                                "none"
+                            )
+                        ]
+                        [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-mds" ]
+                            [ text (String.toUpper category)
+                            ]
+                        , viewMarkdownCategoryDescription model category
+                        , viewQuestions model (Dict.get category model.questions)
+                        ]
+                )
+        )
+
+
+showCategoryContent : Animation
+showCategoryContent =
+    Animation.fromTo
+        { duration = 250
+        , options = [ Animation.easeIn ]
+        }
+        [ AnimProp.opacity 0.5 ]
+        [ AnimProp.opacity 1 ]
 
 
 viewMarkdownCategoryDescription : Model -> String -> Html Msg

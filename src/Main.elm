@@ -743,12 +743,33 @@ viewGraph model =
                 |> Maybe.withDefault 0
     in
     let
+        subInfos subList totalCat =
+            subList
+                |> List.filterMap
+                    (\sub ->
+                        Dict.get sub model.evaluations
+                            |> Maybe.andThen
+                                (\{ nodeValue } ->
+                                    case nodeValue of
+                                        P.Num value ->
+                                            Just
+                                                { subCat = H.getTitle model.rawRules sub
+                                                , percent = (value / totalCat) * 100
+                                                , totalSubCat = value
+                                                }
+
+                                        _ ->
+                                            Nothing
+                                )
+                    )
+    in
+    let
         data =
             model.categories
                 |> Dict.toList
                 |> List.filterMap
                     -- TODO: manage subcategories
-                    (\( category, _ ) ->
+                    (\( category, infos ) ->
                         Dict.get category model.evaluations
                             |> Maybe.andThen
                                 (\{ nodeValue } ->
@@ -757,6 +778,7 @@ viewGraph model =
                                             Just
                                                 { category = category
                                                 , percent = (value / total) * 100
+                                                , subCatInfos = subInfos infos.sub value
                                                 }
 
                                         _ ->
@@ -769,9 +791,9 @@ viewGraph model =
             |> List.sortBy .percent
             |> List.reverse
             |> List.map
-                (\{ category, percent } ->
+                (\{ category, percent, subCatInfos } ->
                     let
-                        p =
+                        formattedPercent =
                             format { frenchLocale | decimals = Exact 0 } percent ++ "%"
                     in
                     let
@@ -792,12 +814,12 @@ viewGraph model =
                                                 ++ " %"
                                             )
                                         ]
-                                    , div [ class "bg-secondary rounded-lg h-2", style "width" p ]
+                                    , div [ class "bg-secondary rounded-lg h-2", style "width" formattedPercent ]
                                         []
                                     ]
                                 ]
                             ]
-                        , Animated.div showSubCat [ class "relative z-0", hidden subCatHidden ] [ div [ class "border-x-0 bg-base-50 p-4", style "boxShadow" "0px 6px 6px -2px rgba(21, 3, 35, 0.05) inset" ] [ text "Détail bientôt disponible" ] ]
+                        , viewSubCategoryGraph subCatHidden subCatInfos
                         ]
                 )
         )
@@ -806,10 +828,10 @@ viewGraph model =
 viewCategoryArrow : Bool -> Html Msg
 viewCategoryArrow subCatHidden =
     if subCatHidden then
-        span [ class "mr-2" ] [ text "▶" ]
+        span [ class "mr-2 text-xs" ] [ text "▶" ]
 
     else
-        span [ class "mr-2" ] [ text "▼" ]
+        span [ class "mr-2 text-xs" ] [ text "▼" ]
 
 
 showSubCat : Animation
@@ -820,6 +842,42 @@ showSubCat =
         }
         [ AnimProp.opacity 0.6, AnimProp.y -50 ]
         [ AnimProp.opacity 1, AnimProp.y 0 ]
+
+
+viewSubCategoryGraph : Bool -> List { subCat : P.RuleName, percent : Float, totalSubCat : Float } -> Html Msg
+viewSubCategoryGraph subCatHidden subCatInfos =
+    div [ class "relative z-0" ]
+        [ Animated.div showSubCat
+            [ class "border-x-0 bg-neutral py-2", style "boxShadow" "0px 6px 6px -2px rgba(21, 3, 35, 0.05) inset", hidden subCatHidden ]
+            (subCatInfos
+                |> List.sortBy .percent
+                |> List.reverse
+                |> List.map
+                    (\{ subCat, percent, totalSubCat } ->
+                        let
+                            formattedPercent =
+                                format { frenchLocale | decimals = Exact 0 } percent ++ "%"
+                        in
+                        div [ class "stat py-1" ]
+                            [ div [ class "stat-title text-primary text-xs" ]
+                                [ span []
+                                    [ text
+                                        (String.toUpper subCat
+                                            ++ " - "
+                                            ++ (H.formatFloatToFrenchLocale 0 (totalSubCat / 1000)
+                                                    ++ " tCO2e"
+                                               )
+                                        )
+                                    ]
+                                ]
+                            , div [ class "h-2 flex items-center" ]
+                                [ div [ class "bg-primary rounded-lg h-0.5", style "width" formattedPercent ]
+                                    []
+                                ]
+                            ]
+                    )
+            )
+        ]
 
 
 

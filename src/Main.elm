@@ -66,7 +66,7 @@ type alias Model =
     , situation : P.Situation
     , questions : UI.Questions
     , categories : UI.Categories
-    , orderCategories : List UI.Category
+    , orderedCategories : List UI.Category
     , currentError : Maybe AppError
     , currentTab : Maybe P.RuleName
     , openedCategories : Dict P.RuleName Bool
@@ -85,7 +85,7 @@ emptyModel =
     , questions = Dict.empty
     , situation = Dict.empty
     , categories = Dict.empty
-    , orderCategories = []
+    , orderedCategories = []
     , currentError = Nothing
     , currentTab = Nothing
     , openedCategories = Dict.empty
@@ -108,13 +108,17 @@ init flags =
         )
     of
         ( Ok rawRules, Ok ui, Ok situation ) ->
+            let
+                orderedCategories =
+                    UI.getOrderedCategories ui.categories
+            in
             ( { emptyModel
                 | rawRules = rawRules
                 , questions = ui.questions
                 , categories = ui.categories
                 , situation = situation
-                , orderCategories = UI.getOrderedCategories ui.categories
-                , currentTab = List.head (UI.getOrderedCategories ui.categories)
+                , orderedCategories = orderedCategories
+                , currentTab = List.head orderedCategories
               }
             , Dict.toList rawRules
                 |> List.map (\( name, _ ) -> name)
@@ -253,7 +257,7 @@ view model =
             div
                 [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
                 [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
-                    [ lazy2 viewCategoriesTabs model.orderCategories model.currentTab
+                    [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
                     , lazy viewCategory model
                     ]
                 , lazy viewError model.currentError

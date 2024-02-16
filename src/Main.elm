@@ -158,16 +158,8 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewAnswer ( name, value ) ->
-            let
-                newSituation =
-                    case value of
-                        _ ->
-                            Dict.insert name value model.situation
-            in
-            ( { model | situation = newSituation }
-            , newSituation
-                |> P.encodeSituation
-                |> Effect.setSituation
+            ( { model | situation = Dict.insert name value model.situation }
+            , Effect.updateSituation ( name, P.nodeValueEncoder value )
             )
 
         UpdateEvaluation ( name, encodedEvaluation ) ->

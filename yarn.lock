@@ -1153,15 +1153,15 @@ process@^0.11.1:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
-publicodes-evenements@^0.4.9:
-  version "0.4.9"
-  resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.4.9.tgz#a50beb38f29b126b9385f0bc1059db2aee8ee61e"
-  integrity sha512-HSHOpyYBAJ2bsiAjH/ufnM2UNNfGd7/YKM2ldUeqyx+aiisnGvEjBpg+QEcLeVckuv4HzQmQKx8TZYFtI/OuLQ==
+publicodes-evenements@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.5.0.tgz#b3f5d85b04745664ad2a40e56284b298ad7044d5"
+  integrity sha512-mTXC6ycsTuyfgcoqKu1uxMj9KCzaGCaRcYPk1Wptnx683999JPmtqYqj4yD6sdNdRrox6Pbv9/MKt4/3TPycUA==
 
-publicodes@^1.0.0-beta.77:
-  version "1.0.0-beta.77"
-  resolved "https://registry.yarnpkg.com/publicodes/-/publicodes-1.0.0-beta.77.tgz#45e3c4d2a46bfadcc932e1405ea037e659c28134"
-  integrity sha512-F8U3WGUWMo3/rxhWYS1gWIiG20g1Yy/+PpXdHM99d6ZHKWnnyh/4txVEuyVE75glgDs+mTjwZPnmoKWsTMXluA==
+publicodes@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/publicodes/-/publicodes-1.0.1.tgz#07c1e5d94b3609a2fe09b531490969c9f4960086"
+  integrity sha512-vrgnLCKeu3orxmBhyjll8/rxnL3k2EYtIYa7D7GiJVYWmOE08J5S6c/1j15LnC3cQkYqYgOJR5JnX5gxooQGLA==
 
 queue-microtask@^1.2.2:
   version "1.2.3"

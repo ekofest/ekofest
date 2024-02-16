@@ -40,7 +40,7 @@ export default class extends Engine {
                     nodeValue: result.nodeValue ?? null,
                     isNullable:
                         // @ts-ignore
-                        result?.isNullable ??
+                        result.nodeValue === null ??
                         // @ts-ignore
                         result?.explanation?.ruleDisabledByItsParent ??
                         false,

@@ -13,5 +13,7 @@ export default defineConfig({
         outDir: "build",
         target: "es2020",
     },
-    assets: ["./src/assets/**"],
+    optimizeDeps: {
+        exclude: ["publicodes-evenements"],
+    },
 })

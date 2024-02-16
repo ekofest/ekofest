@@ -549,56 +549,30 @@ viewInput model ( name, rule ) isDisabled =
     let
         maybeNodeValue =
             Dict.get name model.evaluations
-                |> Maybe.map (\{ nodeValue } -> nodeValue)
+                |> Maybe.map .nodeValue
     in
-    -- TODO: refactor this shit
-    case ( ( rule.formula, rule.unit ), Dict.get name model.situation, maybeNodeValue ) of
-        -- We have the value in the situation
-        ( ( Just (UnePossibilite { possibilites }), _ ), Just situationValue, _ ) ->
-            viewSelectInput model.rawRules name possibilites situationValue isDisabled
+    if isDisabled then
+        viewDisabledInput
 
-        ( ( Just (UnePossibilite { possibilites }), _ ), Nothing, Just nodeValue ) ->
-            viewSelectInput model.rawRules name possibilites nodeValue isDisabled
+    else
+        case ( ( rule.formula, rule.unit ), maybeNodeValue ) of
+            ( ( Just (UnePossibilite { possibilites }), _ ), Just nodeValue ) ->
+                viewSelectInput model.rawRules name possibilites nodeValue isDisabled
 
-        ( ( _, Just "%" ), Just (P.Num num), _ ) ->
-            viewSliderInput num newAnswer isDisabled
+            ( ( _, Just "%" ), Just (P.Num num) ) ->
+                viewRangeInput num newAnswer isDisabled
 
-        ( ( _, Just "%" ), Nothing, Just (P.Num num) ) ->
-            viewSliderInput num newAnswer isDisabled
+            ( _, Just (P.Num num) ) ->
+                viewNumberInputOnlyPlaceHolder num newAnswer isDisabled
 
-        ( _, Just (P.Num num), _ ) ->
-            viewNumberInput num newAnswer isDisabled
+            ( _, Just (P.Str str) ) ->
+                viewTextInputOnlyPlaceHolder str newAnswer isDisabled
 
-        ( _, Just (P.Str str), _ ) ->
-            viewTextInput str newAnswer isDisabled
+            ( _, Just (P.Boolean bool) ) ->
+                viewBooleanRadioInput name bool isDisabled
 
-        ( _, Just (P.Boolean bool), _ ) ->
-            viewBooleanRadioInput name bool isDisabled
-
-        -- We have a default value
-        ( _, Nothing, Just (P.Num num) ) ->
-            viewNumberInputOnlyPlaceHolder num newAnswer isDisabled
-
-        ( _, Nothing, Just (P.Str str) ) ->
-            viewTextInputOnlyPlaceHolder str newAnswer isDisabled
-
-        ( _, Nothing, Just (P.Boolean bool) ) ->
-            viewBooleanRadioInput name bool isDisabled
-
-        ( _, Just Empty, Just (P.Num num) ) ->
-            viewNumberInputOnlyPlaceHolder num newAnswer isDisabled
-
-        ( _, Just Empty, Just (P.Str str) ) ->
-            viewTextInputOnlyPlaceHolder str newAnswer isDisabled
-
-        ( _, Just Empty, Just (P.Boolean bool) ) ->
-            viewBooleanRadioInput name bool isDisabled
-
-        ( _, Just Empty, _ ) ->
-            viewDisabledInput
-
-        _ ->
-            viewDisabledInput
+            _ ->
+                viewDisabledInput
 
 
 viewNumberInput : Float -> (String -> Msg) -> Bool -> Html Msg
@@ -700,13 +674,21 @@ viewBooleanRadioInput name bool isDisabled =
         ]
 
 
-viewSliderInput : Float -> (String -> Msg) -> Bool -> Html Msg
-viewSliderInput num newAnswer isDisabled =
+viewRangeInput : Float -> (String -> Msg) -> Bool -> Html Msg
+viewRangeInput num newAnswer isDisabled =
+    let
+        disabledClass =
+            if isDisabled then
+                " opacity-50 cursor-not-allowed"
+
+            else
+                ""
+    in
     div [ class "flex flex-row" ]
         [ input
             [ type_ "range"
             , disabled isDisabled
-            , class "range range-xs my-2"
+            , class ("range range-primary range-xs my-2" ++ disabledClass)
             , value (String.fromFloat num)
             , onInput newAnswer
             , Html.Attributes.min "0"
@@ -715,7 +697,9 @@ viewSliderInput num newAnswer isDisabled =
             -- Should use `plancher` and `plafond` attributes
             ]
             []
-        , span [ class "ml-4" ] [ text (String.fromFloat num) ]
+        , span
+            [ class ("ml-4" ++ disabledClass) ]
+            [ text (String.fromFloat num) ]
         ]
 
 

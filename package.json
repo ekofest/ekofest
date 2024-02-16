@@ -13,8 +13,8 @@
         "deploy": "gh-pages -d build"
     },
     "dependencies": {
-        "publicodes": "^1.0.0-beta.77",
-        "publicodes-evenements": "^0.4.9"
+        "publicodes": "^1.0.1",
+        "publicodes-evenements": "^0.5.0"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.7",

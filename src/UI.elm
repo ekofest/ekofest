@@ -12,7 +12,7 @@ type alias Category =
 
 type alias CategoryInfos =
     { index : Int
-    , sub : List P.RuleName
+    , subs : List P.RuleName
     }
 
 
@@ -63,4 +63,4 @@ getAllCategoryAndSubCategoryNames : Categories -> List Category
 getAllCategoryAndSubCategoryNames categories =
     categories
         |> Dict.toList
-        |> List.concatMap (\( category, { sub } ) -> category :: sub)
+        |> List.concatMap (\( category, { subs } ) -> category :: subs)

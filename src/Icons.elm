@@ -48,3 +48,37 @@ zap =
             ]
             []
         ]
+
+
+chevronUp : Html msg
+chevronUp =
+    svg
+        [ viewBox "0 0 24 24"
+        , fill "none"
+        , class "inline-block w-5 h-5 stroke-current"
+        ]
+        [ Svg.path
+            [ strokeLinecap "round"
+            , strokeLinejoin "round"
+            , strokeWidth "2"
+            , d "m18 15-6-6-6 6"
+            ]
+            []
+        ]
+
+
+chevronDown : Html msg
+chevronDown =
+    svg
+        [ viewBox "0 0 24 24"
+        , fill "none"
+        , class "inline-block w-5 h-5 stroke-current"
+        ]
+        [ Svg.path
+            [ strokeLinecap "round"
+            , strokeLinejoin "round"
+            , strokeWidth "2"
+            , d "m6 9 6 6 6-6"
+            ]
+            []
+        ]

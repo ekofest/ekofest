@@ -268,7 +268,7 @@ updateEvaluation ( name, encodedEvaluation ) model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ class "h-screen" ]
         [ viewHeader
         , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
             div [ class "flex flex-col w-full items-center" ]
@@ -686,7 +686,7 @@ viewRangeInput num newAnswer isDisabled =
         [ input
             [ type_ "range"
             , disabled isDisabled
-            , class ("range range-secondary range-xs my-2" ++ disabledClass)
+            , class ("range range-accent range-xs my-2" ++ disabledClass)
             , value (String.fromFloat num)
             , onInput newAnswer
             , Html.Attributes.min "0"
@@ -752,6 +752,24 @@ viewUnit rawRule =
             text ""
 
 
+getInfos : Model -> P.RuleName -> Float -> Maybe { title : String, percent : Float, result : Float }
+getInfos model rule total =
+    Dict.get rule model.evaluations
+        |> Maybe.andThen
+            (\{ nodeValue } ->
+                case nodeValue of
+                    P.Num value ->
+                        Just
+                            { title = H.getTitle model.rawRules rule
+                            , percent = (value / total) * 100
+                            , result = value
+                            }
+
+                    _ ->
+                        Nothing
+            )
+
+
 viewGraph : Model -> Html Msg
 viewGraph model =
     let
@@ -761,95 +779,98 @@ viewGraph model =
                 |> Maybe.withDefault 0
     in
     let
-        subInfos subList totalCat =
-            subList
-                |> List.filterMap
-                    (\sub ->
-                        Dict.get sub model.evaluations
-                            |> Maybe.andThen
-                                (\{ nodeValue } ->
-                                    case nodeValue of
-                                        P.Num value ->
-                                            Just
-                                                { subCat = H.getTitle model.rawRules sub
-                                                , percent = (value / totalCat) * 100
-                                                , totalSubCat = value
-                                                }
-
-                                        _ ->
-                                            Nothing
-                                )
-                    )
-    in
-    let
-        data =
+        categoryInfos =
             model.categories
                 |> Dict.toList
                 |> List.filterMap
-                    -- TODO: manage subcategories
-                    (\( category, infos ) ->
-                        Dict.get category model.evaluations
+                    (\( category, { subs } ) ->
+                        getInfos model category total
                             |> Maybe.andThen
-                                (\{ nodeValue } ->
-                                    case nodeValue of
-                                        P.Num value ->
-                                            Just
-                                                { category = category
-                                                , percent = (value / total) * 100
-                                                , subCatInfos = subInfos infos.sub value
-                                                }
-
-                                        _ ->
-                                            Nothing
+                                (\{ title, percent, result } ->
+                                    Just
+                                        { category = title
+                                        , percent = percent
+                                        , result = result
+                                        , subCatInfos =
+                                            List.filterMap
+                                                (\sub -> getInfos model sub result)
+                                                subs
+                                        }
                                 )
                     )
     in
-    div [ class "stats stats-vertical border border-base-200 w-full rounded-md bg-neutral mt-4" ]
-        (data
+    div [ class "border border-base-200 w-full rounded-md bg-neutral mt-4" ]
+        (categoryInfos
             |> List.sortBy .percent
             |> List.reverse
-            |> List.map
-                (\{ category, percent, subCatInfos } ->
+            |> List.indexedMap
+                (\i { category, percent, result, subCatInfos } ->
                     let
-                        formattedPercent =
-                            format { frenchLocale | decimals = Exact 0 } percent ++ "%"
+                        containerClass =
+                            if i == 0 then
+                                " rounded-t-md"
+
+                            else
+                                " border-t border-base-200"
                     in
                     let
-                        subCatHidden =
+                        isHidden =
                             Dict.get category model.openedCategories
                                 |> Maybe.withDefault True
                     in
-                    div []
-                        [ div [ class "stat py-2 cursor-pointer relative z-10 bg-white", onClick (SetSubCategoryGraphStatus category (not subCatHidden)) ]
-                            [ div [ class "stat-title" ]
-                                [ viewCategoryArrow subCatHidden, span [] [ text (String.toUpper category) ] ]
-                            , div []
-                                [ div [ class "h-8 flex items-center" ]
-                                    [ div
-                                        [ class "stat-value text-primary w-20 text-2xl" ]
-                                        [ text
-                                            (H.formatFloatToFrenchLocale 1 percent
-                                                ++ " %"
-                                            )
-                                        ]
-                                    , div [ class "bg-secondary rounded-lg h-2", style "width" formattedPercent ]
-                                        []
-                                    ]
-                                ]
+                    details [ class ("collapse rounded-none" ++ containerClass) ]
+                        [ summary
+                            [ class "collapse-title cursor-pointer hover:bg-base-200 rounded-none pr-4"
+
+                            -- TODO: learn about local state component in elm
+                            , onClick (SetSubCategoryGraphStatus category (not isHidden))
                             ]
-                        , viewSubCategoryGraph subCatHidden subCatInfos
+                            [ viewGraphStat category percent result (Just isHidden) ]
+                        , div [ class "collapse-content p-0 m-0 bg-base-100" ]
+                            [ viewSubCategoryGraph subCatInfos
+                            ]
                         ]
                 )
         )
 
 
-viewCategoryArrow : Bool -> Html Msg
-viewCategoryArrow subCatHidden =
-    if subCatHidden then
-        span [ class "mr-2 text-xs" ] [ text "▶" ]
+viewGraphStat : String -> Float -> Float -> Maybe Bool -> Html Msg
+viewGraphStat title percent result isHidden =
+    div []
+        [ div [ class "stat-title flex w-full justify-between" ]
+            [ span []
+                [ text (String.toUpper title)
+                , span [ class "ml-2 font-bold" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
+                ]
+            , viewCategoryArrow isHidden
+            ]
+        , div [ class "flex items-center" ]
+            [ div
+                [ class "stat-value text-primary text-2xl text-right w-20 mr-4" ]
+                [ text
+                    (H.formatFloatToFrenchLocale 1 percent
+                        ++ " %"
+                    )
+                ]
+            , progress [ class "progress progress-primary h-3", value (String.fromFloat percent), Html.Attributes.max "100" ] []
+            ]
+        ]
 
-    else
-        span [ class "mr-2 text-xs" ] [ text "▼" ]
+
+viewCategoryArrow : Maybe Bool -> Html Msg
+viewCategoryArrow isHidable =
+    case isHidable of
+        Nothing ->
+            text ""
+
+        Just isHidden ->
+            span [ class "mr-2 text-xs" ]
+                [ if isHidden then
+                    Icons.chevronUp
+
+                  else
+                    Icons.chevronDown
+                ]
 
 
 showSubCat : Animation
@@ -862,39 +883,40 @@ showSubCat =
         [ AnimProp.opacity 1, AnimProp.y 0 ]
 
 
-viewSubCategoryGraph : Bool -> List { subCat : P.RuleName, percent : Float, totalSubCat : Float } -> Html Msg
-viewSubCategoryGraph subCatHidden subCatInfos =
-    div [ class "relative z-0" ]
-        [ Animated.div showSubCat
-            [ class "border-x-0 bg-neutral py-2", style "boxShadow" "0px 6px 6px -2px rgba(21, 3, 35, 0.05) inset", hidden subCatHidden ]
-            (subCatInfos
-                |> List.sortBy .percent
-                |> List.reverse
-                |> List.map
-                    (\{ subCat, percent, totalSubCat } ->
-                        let
-                            formattedPercent =
-                                format { frenchLocale | decimals = Exact 0 } percent ++ "%"
-                        in
-                        div [ class "stat py-1" ]
-                            [ div [ class "stat-title text-primary text-xs" ]
-                                [ span []
-                                    [ text
-                                        (String.toUpper subCat
-                                            ++ " - "
-                                            ++ (H.formatFloatToFrenchLocale 0 (totalSubCat / 1000)
-                                                    ++ " tCO2e"
-                                               )
-                                        )
-                                    ]
-                                ]
-                            , div [ class "h-2 flex items-center" ]
-                                [ div [ class "bg-primary rounded-lg h-0.5", style "width" formattedPercent ]
-                                    []
-                                ]
-                            ]
+
+-- viewSubCategoryGraph : Bool -> List { subCat : P.RuleName, percent : Float, totalSubCat : Float } -> Html Msg
+
+
+viewSubCategoryGraph : List { title : String, percent : Float, result : Float } -> Html Msg
+viewSubCategoryGraph subCatInfos =
+    div [ class "p-4 border-t border-base-200 bg-base-100" ]
+        (subCatInfos
+            |> List.sortBy .percent
+            |> List.reverse
+            |> List.map
+                (\{ title, percent, result } ->
+                    viewSubCatGraphStat title percent result
+                )
+        )
+
+
+viewSubCatGraphStat : String -> Float -> Float -> Html Msg
+viewSubCatGraphStat title percent result =
+    div [ class "mb-0" ]
+        [ div [ class "stat-title text-sm flex w-full justify-between" ]
+            [ span [] [ text (String.toUpper title) ]
+            , span [] [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
+            ]
+        , div [ class "flex items-center" ]
+            [ div
+                [ class "stat-value text-accent text-lg  w-16 mr-4" ]
+                [ text
+                    (H.formatFloatToFrenchLocale 1 percent
+                        ++ " %"
                     )
-            )
+                ]
+            , progress [ class "progress progress-accent h-2", value (String.fromFloat percent), Html.Attributes.max "100" ] []
+            ]
         ]
 
 

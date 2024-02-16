@@ -268,27 +268,29 @@ updateEvaluation ( name, encodedEvaluation ) model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "h-screen" ]
-        [ viewHeader
-        , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
-            div [ class "flex flex-col w-full items-center" ]
-                [ viewError model.currentError
-                , div [ class "loading loading-lg text-primary mt-4" ] []
-                ]
+    div [ class "flex flex-col min-h-screen justify-between" ]
+        [ div []
+            [ viewHeader
+            , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
+                div [ class "flex flex-col w-full items-center" ]
+                    [ viewError model.currentError
+                    , div [ class "loading loading-lg text-primary mt-4" ] []
+                    ]
 
-          else
-            div
-                [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
-                [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
-                    [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
-                    , lazy viewCategoryQuestions model
+              else
+                div
+                    [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
+                    [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
+                        [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
+                        , lazy viewCategoryQuestions model
+                        ]
+                    , lazy viewError model.currentError
+                    , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
+                        [ lazy viewResult model
+                        , lazy viewGraph model
+                        ]
                     ]
-                , lazy viewError model.currentError
-                , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
-                    [ lazy viewResult model
-                    , lazy viewGraph model
-                    ]
-                ]
+            ]
         , viewFooter
         ]
 

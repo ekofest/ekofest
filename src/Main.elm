@@ -281,7 +281,7 @@ view model =
                 [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
                 [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
                     [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
-                    , lazy viewCategory model
+                    , lazy viewCategoryQuestions model
                     ]
                 , lazy viewError model.currentError
                 , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
@@ -400,8 +400,8 @@ viewCategoriesTabs categories currentTab =
         ]
 
 
-viewCategory : Model -> Html Msg
-viewCategory model =
+viewCategoryQuestions : Model -> Html Msg
+viewCategoryQuestions model =
     let
         currentCategory =
             Maybe.withDefault "" model.currentTab
@@ -425,7 +425,7 @@ viewCategory model =
                                 "none"
                             )
                         ]
-                        [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-mds" ]
+                        [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-md" ]
                             [ text (String.toUpper category)
                             ]
                         , viewMarkdownCategoryDescription model category
@@ -581,7 +581,7 @@ viewNumberInput num newAnswer isDisabled =
         [ input
             [ type_ "number"
             , disabled isDisabled
-            , class "input input-bordered w-1/2"
+            , class "input input-bordered"
             , value (String.fromFloat num)
             , onInput newAnswer
             ]
@@ -591,16 +591,14 @@ viewNumberInput num newAnswer isDisabled =
 
 viewNumberInputOnlyPlaceHolder : Float -> (String -> Msg) -> Bool -> Html Msg
 viewNumberInputOnlyPlaceHolder num newAnswer isDisabled =
-    div [ class "flex flex-row-reverse" ]
-        [ input
-            [ type_ "number"
-            , disabled isDisabled
-            , class "input input-bordered w-1/2"
-            , placeholder (String.fromFloat num)
-            , onInput newAnswer
-            ]
-            []
+    input
+        [ type_ "number"
+        , disabled isDisabled
+        , class "input input-bordered"
+        , placeholder (String.fromFloat num)
+        , onInput newAnswer
         ]
+        []
 
 
 viewTextInput : String -> (String -> Msg) -> Bool -> Html Msg
@@ -688,7 +686,7 @@ viewRangeInput num newAnswer isDisabled =
         [ input
             [ type_ "range"
             , disabled isDisabled
-            , class ("range range-primary range-xs my-2" ++ disabledClass)
+            , class ("range range-secondary range-xs my-2" ++ disabledClass)
             , value (String.fromFloat num)
             , onInput newAnswer
             , Html.Attributes.min "0"

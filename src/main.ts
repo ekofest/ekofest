@@ -14,7 +14,11 @@ let app = Elm.Main.init({
     node: document.getElementById("elm-app"),
 })
 
+const nbRules = Object.keys(rules).length
+
+console.time(`[publicodes:parsing] ${nbRules} rules`)
 const engine = new EcoFestEngine(rules, app).setSituation(situation)
+console.timeEnd(`[publicodes:parsing] ${nbRules} rules`)
 
 app.ports.setSituation.subscribe((newSituation: Situation) => {
     engine.setSituation(newSituation)

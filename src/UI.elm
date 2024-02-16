@@ -57,3 +57,10 @@ getOrderedCategories categories =
     Dict.toList categories
         |> List.sortBy (\( _, { index } ) -> index)
         |> List.map Tuple.first
+
+
+getAllCategoryAndSubCategoryNames : Categories -> List Category
+getAllCategoryAndSubCategoryNames categories =
+    categories
+        |> Dict.toList
+        |> List.concatMap (\( category, { sub } ) -> category :: sub)

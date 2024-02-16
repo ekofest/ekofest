@@ -19,6 +19,27 @@ totalRuleName =
     "resultats . bilan total"
 
 
+{-| TODO: should be defined in ui.yaml?
+-}
+getResultRules : P.RawRules -> List ( P.RuleName, P.RawRule )
+getResultRules rules =
+    rules
+        |> Dict.toList
+        |> List.filterMap
+            (\( name, rule ) ->
+                case P.splitRuleName name of
+                    [ namespace, _ ] ->
+                        if namespace == resultNamespace then
+                            Just ( name, rule )
+
+                        else
+                            Nothing
+
+                    _ ->
+                        Nothing
+            )
+
+
 getQuestions : P.RawRules -> List String -> Dict String (List P.RuleName)
 getQuestions rules categories =
     Dict.toList rules

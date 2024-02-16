@@ -65,11 +65,13 @@ type alias Model =
     , evaluations : Dict P.RuleName Evaluation
     , situation : P.Situation
     , questions : UI.Questions
+    , resultRules : List ( P.RuleName, P.RawRule )
     , categories : UI.Categories
     , orderedCategories : List UI.Category
-    , currentError : Maybe AppError
-    , currentTab : Maybe P.RuleName
+    , allCategorieAndSubcategorieNames : List P.RuleName
     , openedCategories : Dict P.RuleName Bool
+    , currentError : Maybe AppError
+    , currentTab : Maybe UI.Category
     }
 
 
@@ -85,7 +87,9 @@ emptyModel =
     , questions = Dict.empty
     , situation = Dict.empty
     , categories = Dict.empty
+    , resultRules = []
     , orderedCategories = []
+    , allCategorieAndSubcategorieNames = []
     , currentError = Nothing
     , currentTab = Nothing
     , openedCategories = Dict.empty
@@ -112,18 +116,18 @@ init flags =
                 orderedCategories =
                     UI.getOrderedCategories ui.categories
             in
-            ( { emptyModel
-                | rawRules = rawRules
-                , questions = ui.questions
-                , categories = ui.categories
-                , situation = situation
-                , orderedCategories = orderedCategories
-                , currentTab = List.head orderedCategories
-              }
-            , Dict.toList rawRules
-                |> List.map (\( name, _ ) -> name)
-                |> Effect.evaluateAll
-            )
+            evaluate
+                { emptyModel
+                    | rawRules = rawRules
+                    , questions = ui.questions
+                    , resultRules = H.getResultRules rawRules
+                    , categories = ui.categories
+                    , situation = situation
+                    , orderedCategories = orderedCategories
+                    , allCategorieAndSubcategorieNames =
+                        UI.getAllCategoryAndSubCategoryNames ui.categories
+                    , currentTab = List.head orderedCategories
+                }
 
         ( Err e, _, _ ) ->
             ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
@@ -135,6 +139,38 @@ init flags =
             ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
 
+{-| We try to evaluate only the rules that need to be updated:
+
+  - all the questions and subquestions of the current category
+  - all the result rules
+  - all the categories (as they are always displayed)
+  - all the subcategories if displayed (for now they all are evaluated each time
+    the situation changes)
+
+-}
+evaluate : Model -> ( Model, Cmd Msg )
+evaluate model =
+    let
+        currentCategory =
+            -- NOTE: we always have a currentTab
+            Maybe.withDefault "" model.currentTab
+    in
+    let
+        currentCategoryQuestions =
+            Dict.get currentCategory model.questions
+                |> Maybe.withDefault []
+                |> List.concat
+    in
+    ( model
+    , model.resultRules
+        |> List.map Tuple.first
+        |> List.append currentCategoryQuestions
+        |> List.append model.orderedCategories
+        |> List.append model.allCategorieAndSubcategorieNames
+        |> Effect.evaluateAll
+    )
+
+
 
 -- UPDATE
 
@@ -143,7 +179,7 @@ type Msg
     = NewAnswer ( P.RuleName, P.NodeValue )
     | UpdateEvaluation ( P.RuleName, Json.Encode.Value )
     | UpdateAllEvaluation (List ( P.RuleName, Json.Encode.Value ))
-    | Evaluate ()
+    | Evaluate
     | ChangeTab P.RuleName
     | SetSubCategoryGraphStatus P.RuleName Bool
     | SelectFile
@@ -168,16 +204,11 @@ update msg model =
         UpdateAllEvaluation encodedEvaluations ->
             ( List.foldl updateEvaluation model encodedEvaluations, Cmd.none )
 
-        Evaluate () ->
-            ( model
-            , -- TODO: could it be clever to only evaluate the rules that have been updated?
-              Dict.toList model.rawRules
-                |> List.map (\( name, _ ) -> name)
-                |> Effect.evaluateAll
-            )
+        Evaluate ->
+            evaluate model
 
         ChangeTab category ->
-            ( { model | currentTab = Just category }, Cmd.none )
+            evaluate { model | currentTab = Just category }
 
         SetSubCategoryGraphStatus category status ->
             let
@@ -440,7 +471,6 @@ viewQuestions model maybeQuestions =
                 (List.map (viewSubQuestions model) questions)
 
         Nothing ->
-            -- TODO: display a message to the user
             text ""
 
 
@@ -455,7 +485,6 @@ viewSubQuestions model subquestions =
                             viewQuestion model ( name, rule ) eval.isNullable
 
                         _ ->
-                            -- TODO: display a message to the user
                             text ""
                 )
         )
@@ -701,25 +730,8 @@ viewDisabledInput =
 
 viewResult : Model -> Html Msg
 viewResult model =
-    let
-        resultRules =
-            Dict.toList model.rawRules
-                |> List.filterMap
-                    (\( name, rule ) ->
-                        case P.splitRuleName name of
-                            [ namespace, _ ] ->
-                                if namespace == H.resultNamespace then
-                                    Just ( name, rule )
-
-                                else
-                                    Nothing
-
-                            _ ->
-                                Nothing
-                    )
-    in
     div [ class "stats stats-vertical border w-full rounded-md bg-neutral border-base-200" ]
-        (resultRules
+        (model.resultRules
             |> List.map
                 (\( name, rule ) ->
                     div [ class "stat" ]
@@ -913,5 +925,5 @@ subscriptions _ =
     Sub.batch
         [ Effect.evaluatedRule UpdateEvaluation
         , Effect.evaluatedRules UpdateAllEvaluation
-        , Effect.situationUpdated Evaluate
+        , Effect.situationUpdated (\_ -> Evaluate)
         ]

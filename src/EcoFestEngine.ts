@@ -34,18 +34,16 @@ export default class extends Engine {
     evaluateAll(rules: RuleName[]) {
         const evaluatedRules = rules.map((rule) => {
             const result = super.evaluate(rule)
+            const isApplicable =
+                // NOTE(@EmileRolley): maybe checking [result.nodeValue !== null] is enough.
+                // If we start to experience performance issues, we can remove the check
+                // for [result.nodeValue !== null]
+                super.evaluate({ "est applicable": rule }).nodeValue === true
             return [
                 rule,
                 {
                     nodeValue: result.nodeValue ?? null,
-                    isNullable:
-                        // @ts-ignore
-                        result.nodeValue === null ??
-                        // @ts-ignore
-                        result?.explanation?.ruleDisabledByItsParent ??
-                        false,
-
-                    missingVariables: Object.keys(result.missingVariables),
+                    isApplicable,
                 },
             ]
         })

@@ -6,15 +6,14 @@ import Effect
 import File exposing (File)
 import File.Download
 import File.Select
-import FormatNumber exposing (format)
-import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
+import FormatNumber.Locales exposing (Decimals(..))
 import Helpers as H
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (lazy, lazy2)
 import Icons
-import Json.Decode as Decode exposing (string)
+import Json.Decode as Decode
 import Json.Decode.Pipeline as Decode
 import Json.Encode
 import Markdown
@@ -47,8 +46,7 @@ main =
 
 type alias Evaluation =
     { nodeValue : P.NodeValue
-    , missingVariables : List P.RuleName
-    , isNullable : Bool
+    , isApplicable : Bool
     }
 
 
@@ -56,8 +54,7 @@ evaluationDecoder : Decode.Decoder Evaluation
 evaluationDecoder =
     Decode.succeed Evaluation
         |> Decode.required "nodeValue" P.nodeValueDecoder
-        |> Decode.required "missingVariables" (Decode.list string)
-        |> Decode.required "isNullable" Decode.bool
+        |> Decode.required "isApplicable" Decode.bool
 
 
 type alias Model =
@@ -484,7 +481,7 @@ viewSubQuestions model subquestions =
                 (\name ->
                     case ( Dict.get name model.rawRules, Dict.get name model.evaluations ) of
                         ( Just rule, Just eval ) ->
-                            viewQuestion model ( name, rule ) eval.isNullable
+                            viewQuestion model ( name, rule ) eval.isApplicable
 
                         _ ->
                             text ""
@@ -493,7 +490,7 @@ viewSubQuestions model subquestions =
 
 
 viewQuestion : Model -> ( P.RuleName, P.RawRule ) -> Bool -> Html Msg
-viewQuestion model ( name, rule ) isDisabled =
+viewQuestion model ( name, rule ) isApplicable =
     rule.title
         |> Maybe.map
             (\title ->
@@ -507,7 +504,7 @@ viewQuestion model ( name, rule ) isDisabled =
                             viewCustomTransportTotal model name
 
                           else
-                            viewInput model ( name, rule ) isDisabled
+                            viewInput model ( name, rule ) isApplicable
                         ]
                     ]
             )
@@ -534,7 +531,7 @@ viewCustomTransportTotal model name =
 
 
 viewInput : Model -> ( P.RuleName, P.RawRule ) -> Bool -> Html Msg
-viewInput model ( name, rule ) isDisabled =
+viewInput model ( name, rule ) isApplicable =
     let
         newAnswer val =
             case String.toFloat val of
@@ -553,25 +550,26 @@ viewInput model ( name, rule ) isDisabled =
             Dict.get name model.evaluations
                 |> Maybe.map .nodeValue
     in
-    if isDisabled then
+    if not isApplicable then
         viewDisabledInput
 
     else
         case ( ( rule.formula, rule.unit ), maybeNodeValue ) of
             ( ( Just (UnePossibilite { possibilites }), _ ), Just nodeValue ) ->
-                viewSelectInput model.rawRules name possibilites nodeValue isDisabled
+                viewSelectInput model.rawRules name possibilites nodeValue
 
             ( ( _, Just "%" ), Just (P.Num num) ) ->
-                viewRangeInput num newAnswer isDisabled
+                viewRangeInput num newAnswer
 
             ( _, Just (P.Num num) ) ->
-                viewNumberInputOnlyPlaceHolder num newAnswer isDisabled
-
-            ( _, Just (P.Str str) ) ->
-                viewTextInputOnlyPlaceHolder str newAnswer isDisabled
+                viewNumberInputOnlyPlaceHolder num newAnswer
 
             ( _, Just (P.Boolean bool) ) ->
-                viewBooleanRadioInput name bool isDisabled
+                viewBooleanRadioInput name bool
+
+            ( _, Just (P.Str _) ) ->
+                -- Should not happen
+                viewDisabledInput
 
             _ ->
                 viewDisabledInput
@@ -591,11 +589,10 @@ viewNumberInput num newAnswer isDisabled =
         ]
 
 
-viewNumberInputOnlyPlaceHolder : Float -> (String -> Msg) -> Bool -> Html Msg
-viewNumberInputOnlyPlaceHolder num newAnswer isDisabled =
+viewNumberInputOnlyPlaceHolder : Float -> (String -> Msg) -> Html Msg
+viewNumberInputOnlyPlaceHolder num newAnswer =
     input
         [ type_ "number"
-        , disabled isDisabled
         , class "input input-bordered"
         , placeholder (String.fromFloat num)
         , onInput newAnswer
@@ -603,36 +600,11 @@ viewNumberInputOnlyPlaceHolder num newAnswer isDisabled =
         []
 
 
-viewTextInput : String -> (String -> Msg) -> Bool -> Html Msg
-viewTextInput str newAnswer isDisabled =
-    input
-        [ type_ "text"
-        , disabled isDisabled
-        , class "input input-bordered"
-        , value str
-        , onInput newAnswer
-        ]
-        []
-
-
-viewTextInputOnlyPlaceHolder : String -> (String -> Msg) -> Bool -> Html Msg
-viewTextInputOnlyPlaceHolder str newAnswer isDisabled =
-    input
-        [ type_ "text"
-        , disabled isDisabled
-        , class "input input-bordered"
-        , placeholder str
-        , onInput newAnswer
-        ]
-        []
-
-
-viewSelectInput : P.RawRules -> P.RuleName -> List String -> P.NodeValue -> Bool -> Html Msg
-viewSelectInput rules ruleName possibilites nodeValue isDisabled =
+viewSelectInput : P.RawRules -> P.RuleName -> List String -> P.NodeValue -> Html Msg
+viewSelectInput rules ruleName possibilites nodeValue =
     select
         [ onInput (\v -> NewAnswer ( ruleName, P.Str v ))
         , class "select select-bordered"
-        , disabled isDisabled
         ]
         (possibilites
             |> List.map
@@ -646,8 +618,8 @@ viewSelectInput rules ruleName possibilites nodeValue isDisabled =
         )
 
 
-viewBooleanRadioInput : P.RuleName -> Bool -> Bool -> Html Msg
-viewBooleanRadioInput name bool isDisabled =
+viewBooleanRadioInput : P.RuleName -> Bool -> Html Msg
+viewBooleanRadioInput name bool =
     div [ class "form-control" ]
         [ label [ class "label cursor-pointer" ]
             [ span [ class "label-text" ] [ text "Oui" ]
@@ -655,7 +627,6 @@ viewBooleanRadioInput name bool isDisabled =
                 [ class "radio radio-sm"
                 , type_ "radio"
                 , checked bool
-                , disabled isDisabled
                 , onCheck (\b -> NewAnswer ( name, P.Boolean b ))
                 ]
                 []
@@ -666,7 +637,6 @@ viewBooleanRadioInput name bool isDisabled =
                 [ class "radio radio-sm"
                 , type_ "radio"
                 , checked (not bool)
-                , disabled isDisabled
                 , onCheck (\b -> NewAnswer ( name, P.Boolean (not b) ))
                 ]
                 []
@@ -674,21 +644,12 @@ viewBooleanRadioInput name bool isDisabled =
         ]
 
 
-viewRangeInput : Float -> (String -> Msg) -> Bool -> Html Msg
-viewRangeInput num newAnswer isDisabled =
-    let
-        disabledClass =
-            if isDisabled then
-                " opacity-50 cursor-not-allowed"
-
-            else
-                ""
-    in
+viewRangeInput : Float -> (String -> Msg) -> Html Msg
+viewRangeInput num newAnswer =
     div [ class "flex flex-row" ]
         [ input
             [ type_ "range"
-            , disabled isDisabled
-            , class ("range range-accent range-xs my-2" ++ disabledClass)
+            , class "range range-accent range-xs my-2"
             , value (String.fromFloat num)
             , onInput newAnswer
             , Html.Attributes.min "0"
@@ -698,7 +659,7 @@ viewRangeInput num newAnswer isDisabled =
             ]
             []
         , span
-            [ class ("ml-4" ++ disabledClass) ]
+            [ class "ml-4" ]
             [ text (String.fromFloat num) ]
         ]
 

@@ -305,8 +305,12 @@ viewHeader =
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
             , div [ class "join join-vertical p-2 sm:join-horizontal" ]
-                [ button [ class (btnClass ++ " btn-primary"), onClick ResetSituation ] [ text "Recommencer ↺ " ]
-                , button [ class btnClass, onClick ExportSituation ] [ text "Exporter ↑" ]
+                [ button [ class (btnClass ++ " btn-primary"), onClick ResetSituation ]
+                    [ span [ class "mr-2" ] [ Icons.refresh ], text "Recommencer" ]
+                , button [ class btnClass, onClick ExportSituation ]
+                    [ span [ class "mr-2" ] [ Icons.download ]
+                    , text "Télécharger"
+                    ]
                 , button
                     [ class btnClass
                     , type_ "file"
@@ -314,7 +318,9 @@ viewHeader =
                     , accept ".json"
                     , onClick SelectFile
                     ]
-                    [ text "Importer ↓" ]
+                    [ span [ class "mr-2" ] [ Icons.upload ]
+                    , text "Importer"
+                    ]
                 ]
             ]
         ]
@@ -322,27 +328,50 @@ viewHeader =
 
 viewFooter : Html Msg
 viewFooter =
-    footer []
-        [ div [ class "flex flex-col gap-y-2 items-center justify-center w-full px-4 py-4 mt-4 border-t border-base-200 text-primary bg-neutral" ]
-            [ div [ class "flex gap-x-4" ]
-                [ a
-                    [ class "hover:text-primary cursor-pointer"
-                    , href "https://ekofest.github.io/publicodes-evenements"
-                    , target "_blank"
-                    ]
-                    [ text "Consulter le modèle de calcul" ]
-                , div [ class "text-base-200" ]
-                    [ text " | " ]
-                , a
-                    [ class "hover:text-primary cursor-pointer"
-                    , href "https://github.com/ekofest/ekofest"
-                    , target "_blank"
-                    ]
-                    [ text "Consulter le code source" ]
+    footer [ class "footer p-8 bg-neutral text-base-content border-t border-base-200" ]
+        [ aside [ class "text-md" ]
+            [ span []
+                [ text "Fait avec "
+                , Icons.heartHandshake
+                , text " par "
+                , a [ class "link", href "https://github.com/EmileRolley", target "_blank" ] [ text "Milou" ]
+                , text " et "
+                , a [ class "link", href "https://github.com/clemog", target "_blank" ] [ text "Clemog" ]
+                , text " au Moulin Bonne Vie"
                 ]
-            , div [ class "text-accent text-sm" ] [ text "Fait avec amour par Milou et Clemog au Moulin Bonne Vie 🏡" ]
+            ]
+        , nav []
+            [ h6 [ class "footer-title" ] [ text "Liens utiles" ]
+            , a
+                [ class "link link-hover"
+                , href "https://ekofest.github.io/publicodes-evenements"
+                , target "_blank"
+                ]
+                [ text "Consulter le modèle de calcul" ]
+            , a
+                [ class "link link-hover"
+                , href "https://github.com/ekofest/ekofest"
+                , target "_blank"
+                ]
+                [ text "Consulter le code source" ]
             ]
         ]
+
+
+
+-- div [ class "flex flex-col gap-y-2 items-center justify-center w-full px-4 py-4 mt-4 border-t border-base-200 text-primary bg-neutral" ]
+--     [ div [ class "flex flex-col gap-x-4 items-center sm:flex-row" ]
+--         [ a
+--             [ class "hover:text-primary cursor-pointer"
+--             , href "https://ekofest.github.io/publicodes-evenements"
+--             , target "_blank"
+--             ]
+--             [ text "Consulter le modèle de calcul" ]
+--         , a
+--             [ class "hover:text-primary cursor-pointer"
+--         ]
+--     ]
+-- ]
 
 
 viewError : Maybe AppError -> Html Msg
@@ -573,20 +602,6 @@ viewInput model ( name, rule ) isApplicable =
 
             _ ->
                 viewDisabledInput
-
-
-viewNumberInput : Float -> (String -> Msg) -> Bool -> Html Msg
-viewNumberInput num newAnswer isDisabled =
-    div [ class "flex flex-row-reverse" ]
-        [ input
-            [ type_ "number"
-            , disabled isDisabled
-            , class "input input-bordered"
-            , value (String.fromFloat num)
-            , onInput newAnswer
-            ]
-            []
-        ]
 
 
 viewNumberInputOnlyPlaceHolder : Float -> (String -> Msg) -> Html Msg

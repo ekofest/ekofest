@@ -609,7 +609,7 @@ viewNumberInputOnlyPlaceHolder num newAnswer =
     input
         [ type_ "number"
         , class "input input-bordered"
-        , placeholder (String.fromFloat num)
+        , placeholder (H.formatFloatToFrenchLocale 1 num)
         , onInput newAnswer
         ]
         []

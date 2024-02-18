@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
     content: ["./index.html", "./src/**/*.elm"],
+    future: {
+        hoverOnlyWhenSupported: true,
+    },
     theme: {
         extend: {
             fontSize: {

@@ -275,16 +275,18 @@ view model =
                     ]
 
               else
-                div
-                    [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
-                    [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
-                        [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
-                        , lazy viewCategoryQuestions model
-                        ]
-                    , lazy viewError model.currentError
-                    , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
-                        [ lazy viewResult model
-                        , lazy viewGraph model
+                div []
+                    [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
+                    , div
+                        [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
+                        [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
+                            [ lazy viewCategoryQuestions model
+                            ]
+                        , lazy viewError model.currentError
+                        , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
+                            [ lazy viewResult model
+                            , lazy viewGraph model
+                            ]
                         ]
                     ]
             ]
@@ -299,7 +301,7 @@ viewHeader =
             "join-item btn-sm bg-base-100 font-semibold border border-base-200 hover:bg-base-200"
     in
     header []
-        [ div [ class "flex items-center justify-between w-full px-4 lg:px-8 mb-4 border-b border-base-200 text-primary bg-neutral" ]
+        [ div [ class "flex items-center justify-between w-full px-4 lg:px-8 border-b border-base-200 text-primary bg-neutral" ]
             [ div [ class "flex items-center" ]
                 [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
@@ -328,7 +330,7 @@ viewHeader =
 
 viewFooter : Html Msg
 viewFooter =
-    footer [ class "footer p-8 bg-neutral text-base-content border-t border-base-200" ]
+    footer [ class "footer p-8 mt-4 bg-neutral text-base-content border-t border-base-20" ]
         [ aside [ class "text-md" ]
             [ span []
                 [ text "Fait avec "
@@ -395,37 +397,33 @@ viewError maybeError =
 
 viewCategoriesTabs : List UI.Category -> Maybe P.RuleName -> Html Msg
 viewCategoriesTabs categories currentTab =
-    div [ class "flex flex-wrap md:justify-center bg-neutral rounded-md border border-base-200 p-2 mb-4" ]
-        [ ul [ class "menu menu-horizontal gap-2" ]
-            (categories
-                |> List.map
-                    (\category ->
-                        let
-                            activeClass =
-                                currentTab
-                                    |> Maybe.andThen
-                                        (\tab ->
-                                            if tab == category then
-                                                Just " bg-primary text-white border-transparent"
+    div [ class "flex bg-neutral rounded-md border-b border-base-200 mb-4 px-6 overflow-x-auto" ]
+        (categories
+            |> List.map
+                (\category ->
+                    let
+                        activeClass =
+                            currentTab
+                                |> Maybe.andThen
+                                    (\tab ->
+                                        if tab == category then
+                                            Just " text-primary border-b border-primary"
 
-                                            else
-                                                Nothing
-                                        )
-                                    |> Maybe.withDefault ""
-                        in
-                        li []
-                            [ a
-                                [ class
-                                    ("bg-base-100 rounded-md border border-base-200 cursor-pointer px-4 py-2 text-xs font-semibold hover:bg-primary hover:text-white hover:border-transparent"
-                                        ++ activeClass
+                                        else
+                                            Nothing
                                     )
-                                , onClick (ChangeTab category)
-                                ]
-                                [ text (String.toUpper category) ]
-                            ]
-                    )
-            )
-        ]
+                                |> Maybe.withDefault ""
+                    in
+                    button
+                        [ class
+                            ("rounded-none cursor-pointer p-4 text-xs font-semibold hover:bg-base-100 hover:border-transparent"
+                                ++ activeClass
+                            )
+                        , onClick (ChangeTab category)
+                        ]
+                        [ text (String.toUpper category) ]
+                )
+        )
 
 
 viewCategoryQuestions : Model -> Html Msg
@@ -434,7 +432,7 @@ viewCategoryQuestions model =
         currentCategory =
             Maybe.withDefault "" model.currentTab
     in
-    div [ class "bg-neutral border-x border-b border-base-200 rounded-md " ]
+    div [ class "bg-neutral border border-base-200 rounded-md mb-4" ]
         (model.categories
             |> Dict.toList
             |> List.map
@@ -453,10 +451,10 @@ viewCategoryQuestions model =
                                 "none"
                             )
                         ]
-                        [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-md" ]
-                            [ text (String.toUpper category)
-                            ]
-                        , viewMarkdownCategoryDescription model category
+                        [ -- div [ class "pl-6 font-semibold p-2 border-b border-base-200 rounded-t-md" ]
+                          -- [ text (String.toUpper category)
+                          -- ]
+                          viewMarkdownCategoryDescription model category
                         , viewQuestions model (Dict.get category model.questions)
                         ]
                 )
@@ -485,7 +483,7 @@ viewMarkdownCategoryDescription model currentCategory =
             text ""
 
         Just desc ->
-            div [ class "px-6 py-3 mb-4 border-b bg-orange-50" ]
+            div [ class "px-6 py-3 mb-4 border-b rounded-t-md bg-orange-50" ]
                 [ div [ class "prose max-w-full" ] <|
                     Markdown.toHtml Nothing desc
                 ]

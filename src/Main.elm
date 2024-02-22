@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Array
 import Browser
 import Dict exposing (Dict)
 import Effect
@@ -19,9 +20,6 @@ import Json.Encode
 import Markdown
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
-import Simple.Animation as Animation exposing (Animation)
-import Simple.Animation.Animated as Animated
-import Simple.Animation.Property as AnimProp
 import Task
 import UI
 
@@ -275,16 +273,18 @@ view model =
                     ]
 
               else
-                div
-                    [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
-                    [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
-                        [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
-                        , lazy viewCategoryQuestions model
-                        ]
-                    , lazy viewError model.currentError
-                    , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
-                        [ lazy viewResult model
-                        , lazy viewGraph model
+                div []
+                    [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
+                    , div
+                        [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
+                        [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
+                            [ lazy viewCategoryQuestions model
+                            ]
+                        , lazy viewError model.currentError
+                        , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
+                            [ lazy viewResult model
+                            , lazy viewGraph model
+                            ]
                         ]
                     ]
             ]
@@ -299,13 +299,13 @@ viewHeader =
             "join-item btn-sm bg-base-100 font-semibold border border-base-200 hover:bg-base-200"
     in
     header []
-        [ div [ class "flex items-center justify-between w-full px-4 lg:px-8 mb-4 border-b border-base-200 text-primary bg-neutral" ]
+        [ div [ class "flex items-center justify-between w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
+                [ div [ class "text-3xl font-bold text-dark m-2 text-primary" ] [ text "EkoFest" ]
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
             , div [ class "join join-vertical p-2 sm:join-horizontal" ]
-                [ button [ class (btnClass ++ " btn-primary"), onClick ResetSituation ]
+                [ button [ class btnClass, onClick ResetSituation ]
                     [ span [ class "mr-2" ] [ Icons.refresh ], text "Recommencer" ]
                 , button [ class btnClass, onClick ExportSituation ]
                     [ span [ class "mr-2" ] [ Icons.download ]
@@ -328,50 +328,71 @@ viewHeader =
 
 viewFooter : Html Msg
 viewFooter =
-    footer [ class "footer p-8 bg-neutral text-base-content border-t border-base-200" ]
-        [ aside [ class "text-md" ]
-            [ span []
-                [ text "Fait avec "
-                , Icons.heartHandshake
-                , text " par "
-                , a [ class "link", href "https://github.com/EmileRolley", target "_blank" ] [ text "Milou" ]
-                , text " et "
-                , a [ class "link", href "https://github.com/clemog", target "_blank" ] [ text "Clemog" ]
-                , text " au Moulin Bonne Vie"
+    div []
+        [ footer [ class "footer p-8 mt-4 bg-neutral text-base-content border-t border-base-200" ]
+            [ aside [ class "text-md max-w-6xl" ]
+                [ div []
+                    [ text """
+                    EkoFest a pour objectif de faciliter l'organisation d'événements festifs et culturels éco-responsables.
+                    L'outil permet de rapidement estimer l'impact carbone (en équivalent CO2) d'un événement
+                    afin de repérer les postes les plus émetteurs et anticiper les actions à mettre en place.
+                    """
+                    ]
+                , div [ class "" ]
+                    [ text """
+                    Ce simulateur a été développé dans une démarche de transparence et de partage. 
+                    Ainsi, le code du simulateur est libre et ouvert, de la même manière que le modèle de calcul.
+                    """
+                    ]
+                , div []
+                    [ text "Fait avec "
+                    , Icons.heartHandshake
+                    , text " par "
+                    , a [ class "link", href "https://github.com/EmileRolley", target "_blank" ] [ text "Milou" ]
+                    , text " et "
+                    , a [ class "link", href "https://github.com/clemog", target "_blank" ] [ text "Clemog" ]
+                    , text " au Moulin Bonne Vie"
+                    ]
+
+                -- , div [ class "w-24 " ]
+                ]
+            , nav []
+                [ h6 [ class "footer-title" ] [ text "Liens utiles" ]
+                , a
+                    [ class "link link-hover"
+                    , href "https://ekofest.github.io/publicodes-evenements"
+                    , target "_blank"
+                    ]
+                    [ text "Documentation du modèle" ]
+                , a
+                    [ class "link link-hover"
+                    , href "https://github.com/ekofest/publicodes-evenements"
+                    , target "_blank"
+                    ]
+                    [ text "Code source du modèle" ]
+                , a
+                    [ class "link link-hover"
+                    , href "https://github.com/ekofest/ekofest"
+                    , target "_blank"
+                    ]
+                    [ text "Code source du site" ]
+                ]
+            , a [ class "w-24", href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
+                [ img [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr", alt "Ecoindex Badge" ] []
                 ]
             ]
-        , nav []
-            [ h6 [ class "footer-title" ] [ text "Liens utiles" ]
-            , a
-                [ class "link link-hover"
-                , href "https://ekofest.github.io/publicodes-evenements"
-                , target "_blank"
+        , footer [ class "footer p-4 bg-red-50 text-base-content border-t border-base-200" ]
+            [ div []
+                [ div [ class "text-sm" ]
+                    [ text """Ce simulateur étant en cours de développement, les résultats obtenus
+                sont donc à prendre avec précaution et ne peuvent se substituer à un bilan carbone.
+                Pour toute question ou suggestion, n'hésitez pas """
+                    , a [ class "link", href "mailto:emile.rolley@tuta.io" ] [ text "à nous contacter" ]
+                    , text "."
+                    ]
                 ]
-                [ text "Consulter le modèle de calcul" ]
-            , a
-                [ class "link link-hover"
-                , href "https://github.com/ekofest/ekofest"
-                , target "_blank"
-                ]
-                [ text "Consulter le code source" ]
             ]
         ]
-
-
-
--- div [ class "flex flex-col gap-y-2 items-center justify-center w-full px-4 py-4 mt-4 border-t border-base-200 text-primary bg-neutral" ]
---     [ div [ class "flex flex-col gap-x-4 items-center sm:flex-row" ]
---         [ a
---             [ class "hover:text-primary cursor-pointer"
---             , href "https://ekofest.github.io/publicodes-evenements"
---             , target "_blank"
---             ]
---             [ text "Consulter le modèle de calcul" ]
---         , a
---             [ class "hover:text-primary cursor-pointer"
---         ]
---     ]
--- ]
 
 
 viewError : Maybe AppError -> Html Msg
@@ -395,37 +416,42 @@ viewError maybeError =
 
 viewCategoriesTabs : List UI.Category -> Maybe P.RuleName -> Html Msg
 viewCategoriesTabs categories currentTab =
-    div [ class "flex flex-wrap md:justify-center bg-neutral rounded-md border border-base-200 p-2 mb-4" ]
-        [ ul [ class "menu menu-horizontal gap-2" ]
-            (categories
-                |> List.map
-                    (\category ->
-                        let
-                            activeClass =
-                                currentTab
-                                    |> Maybe.andThen
-                                        (\tab ->
-                                            if tab == category then
-                                                Just " bg-primary text-white border-transparent"
+    div [ class "flex bg-neutral rounded-md border-b border-base-200 mb-4 px-6 overflow-x-auto" ]
+        (categories
+            |> List.indexedMap
+                (\i category ->
+                    let
+                        isActive =
+                            currentTab == Just category
+                    in
+                    button
+                        [ class
+                            ("rounded-none cursor-pointer p-4 text-xs hover:bg-base-100 "
+                                ++ (if isActive then
+                                        " border-b border-primary font-semibold "
 
-                                            else
-                                                Nothing
-                                        )
-                                    |> Maybe.withDefault ""
-                        in
-                        li []
-                            [ a
-                                [ class
-                                    ("bg-base-100 rounded-md border border-base-200 cursor-pointer px-4 py-2 text-xs font-semibold hover:bg-primary hover:text-white hover:border-transparent"
-                                        ++ activeClass
-                                    )
-                                , onClick (ChangeTab category)
-                                ]
-                                [ text (String.toUpper category) ]
+                                    else
+                                        ""
+                                   )
+                            )
+                        , onClick (ChangeTab category)
+                        ]
+                        [ span
+                            [ class
+                                ("rounded-full px-2 mr-2"
+                                    ++ (if isActive then
+                                            " text-white bg-primary"
+
+                                        else
+                                            " bg-gray-300"
+                                       )
+                                )
                             ]
-                    )
-            )
-        ]
+                            [ text (String.fromInt (i + 1)) ]
+                        , text (String.toUpper category)
+                        ]
+                )
+        )
 
 
 viewCategoryQuestions : Model -> Html Msg
@@ -434,43 +460,54 @@ viewCategoryQuestions model =
         currentCategory =
             Maybe.withDefault "" model.currentTab
     in
-    div [ class "bg-neutral border-x border-b border-base-200 rounded-md " ]
+    div [ class "bg-neutral border border-base-200 rounded-md mb-4" ]
         (model.categories
             |> Dict.toList
             |> List.map
                 (\( category, _ ) ->
                     let
-                        toShow =
+                        isVisible =
                             currentCategory == category
                     in
-                    Animated.div showCategoryContent
-                        [ class "mb-8"
-                        , style "display"
-                            (if toShow then
-                                "block"
+                    let
+                        maybeNextCategory =
+                            model.orderedCategories
+                                |> H.dropUntil ((==) category)
+                                |> List.drop 1
+                                |> List.head
+                    in
+                    div
+                        [ class
+                            -- TODO: better transition
+                            ("flex flex-col  transition-opacity ease-in duration-0"
+                                ++ (if isVisible then
+                                        " mb-8 opacity-100"
 
-                             else
-                                "none"
+                                    else
+                                        " opacity-50"
+                                   )
                             )
                         ]
-                        [ div [ class "pl-6 bg-base-200 font-semibold p-2 border border-base-300 rounded-t-md" ]
-                            [ text (String.toUpper category)
+                        (if isVisible then
+                            [ viewMarkdownCategoryDescription model category
+                            , viewQuestions model (Dict.get category model.questions)
+                            , case maybeNextCategory of
+                                Just nextCategory ->
+                                    button
+                                        [ class "btn btn-primary btn-wide self-center md:self-end md:w-fit mx-6 mt-6 text-white"
+                                        , onClick (ChangeTab nextCategory)
+                                        ]
+                                        [ text "Suivant", Icons.chevronRight ]
+
+                                Nothing ->
+                                    text ""
                             ]
-                        , viewMarkdownCategoryDescription model category
-                        , viewQuestions model (Dict.get category model.questions)
-                        ]
+
+                         else
+                            []
+                        )
                 )
         )
-
-
-showCategoryContent : Animation
-showCategoryContent =
-    Animation.fromTo
-        { duration = 250
-        , options = [ Animation.easeIn ]
-        }
-        [ AnimProp.opacity 0.5 ]
-        [ AnimProp.opacity 1 ]
 
 
 viewMarkdownCategoryDescription : Model -> String -> Html Msg
@@ -485,7 +522,7 @@ viewMarkdownCategoryDescription model currentCategory =
             text ""
 
         Just desc ->
-            div [ class "px-6 py-3 mb-4 border-b bg-orange-50" ]
+            div [ class "px-6 py-3 mb-4 border-b rounded-t-md bg-orange-50" ]
                 [ div [ class "prose max-w-full" ] <|
                     Markdown.toHtml Nothing desc
                 ]
@@ -818,7 +855,8 @@ viewGraphStat title percent result isHidden =
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
                 [ text (String.toUpper title)
-                , span [ class "ml-2 font-bold" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
+                , span [ class "ml-2 font-bold" ]
+                    [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
                 ]
             , viewCategoryArrow isHidden
             ]
@@ -830,35 +868,25 @@ viewGraphStat title percent result isHidden =
                         ++ " %"
                     )
                 ]
-            , progress [ class "progress progress-primary h-3", value (String.fromFloat percent), Html.Attributes.max "100" ] []
+            , progress
+                [ class "progress progress-primary h-3"
+                , value (String.fromFloat percent)
+                , Html.Attributes.max "100"
+                ]
+                []
             ]
         ]
 
 
 viewCategoryArrow : Maybe Bool -> Html Msg
 viewCategoryArrow isHidable =
-    case isHidable of
-        Nothing ->
-            text ""
+    span [ class "mr-2 text-xs" ]
+        [ if isHidable == Just True then
+            Icons.chevronDown
 
-        Just isHidden ->
-            span [ class "mr-2 text-xs" ]
-                [ if isHidden then
-                    Icons.chevronUp
-
-                  else
-                    Icons.chevronDown
-                ]
-
-
-showSubCat : Animation
-showSubCat =
-    Animation.fromTo
-        { duration = 250
-        , options = []
-        }
-        [ AnimProp.opacity 0.6, AnimProp.y -50 ]
-        [ AnimProp.opacity 1, AnimProp.y 0 ]
+          else
+            Icons.chevronUp
+        ]
 
 
 

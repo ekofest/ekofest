@@ -329,7 +329,7 @@ viewHeader =
 viewFooter : Html Msg
 viewFooter =
     div []
-        [ footer [ class "footer p-8 mt-4 bg-neutral text-base-content border-t border-base-200" ]
+        [ footer [ class "footer p-8 mt-8 md:mt-20 bg-neutral text-base-content border-t border-base-200" ]
             [ aside [ class "text-md max-w-6xl" ]
                 [ div []
                     [ text """
@@ -416,7 +416,7 @@ viewError maybeError =
 
 viewCategoriesTabs : List UI.Category -> Maybe P.RuleName -> Html Msg
 viewCategoriesTabs categories currentTab =
-    div [ class "flex bg-neutral rounded-md border-b border-base-200 mb-4 px-6 overflow-x-auto" ]
+    div [ class "flex bg-neutral rounded-md border-b border-base-200 mb-8 px-6 overflow-x-auto" ]
         (categories
             |> List.indexedMap
                 (\i category ->

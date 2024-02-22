@@ -1,5 +1,6 @@
 module Helpers exposing (..)
 
+import Array exposing (Array)
 import Dict exposing (Dict)
 import File exposing (File)
 import FormatNumber exposing (format)
@@ -119,3 +120,17 @@ formatFloatToFrenchLocale n =
 filesDecoder : Decoder (List File)
 filesDecoder =
     Decode.at [ "target", "files" ] (Decode.list File.decoder)
+
+
+dropUntil : (a -> Bool) -> List a -> List a
+dropUntil predicate list =
+    case list of
+        [] ->
+            []
+
+        x :: xs ->
+            if predicate x then
+                list
+
+            else
+                dropUntil predicate xs

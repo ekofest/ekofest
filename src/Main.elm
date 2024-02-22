@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Array
 import Browser
 import Dict exposing (Dict)
 import Effect
@@ -298,13 +299,13 @@ viewHeader =
             "join-item btn-sm bg-base-100 font-semibold border border-base-200 hover:bg-base-200"
     in
     header []
-        [ div [ class "flex items-center justify-between w-full px-4 lg:px-8 border-b border-base-200 text-primary bg-neutral" ]
+        [ div [ class "flex items-center justify-between w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ div [ class "text-3xl font-bold text-dark m-2" ] [ text "EkoFest" ]
+                [ div [ class "text-3xl font-bold text-dark m-2 text-primary" ] [ text "EkoFest" ]
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
             , div [ class "join join-vertical p-2 sm:join-horizontal" ]
-                [ button [ class (btnClass ++ " btn-primary"), onClick ResetSituation ]
+                [ button [ class btnClass, onClick ResetSituation ]
                     [ span [ class "mr-2" ] [ Icons.refresh ], text "Recommencer" ]
                 , button [ class btnClass, onClick ExportSituation ]
                     [ span [ class "mr-2" ] [ Icons.download ]
@@ -447,10 +448,17 @@ viewCategoryQuestions model =
                         isVisible =
                             currentCategory == category
                     in
+                    let
+                        maybeNextCategory =
+                            model.orderedCategories
+                                |> H.dropUntil ((==) category)
+                                |> List.drop 1
+                                |> List.head
+                    in
                     div
                         [ class
                             -- TODO: better transition
-                            ("transition-opacity ease-in duration-0"
+                            ("flex flex-col  transition-opacity ease-in duration-0"
                                 ++ (if isVisible then
                                         " mb-8 opacity-100"
 
@@ -462,6 +470,16 @@ viewCategoryQuestions model =
                         (if isVisible then
                             [ viewMarkdownCategoryDescription model category
                             , viewQuestions model (Dict.get category model.questions)
+                            , case maybeNextCategory of
+                                Just nextCategory ->
+                                    button
+                                        [ class "btn btn-primary btn-wide self-center md:self-end md:w-fit mx-6 mt-6 text-white"
+                                        , onClick (ChangeTab nextCategory)
+                                        ]
+                                        [ text "Suivant", Icons.chevronRight ]
+
+                                Nothing ->
+                                    text ""
                             ]
 
                          else

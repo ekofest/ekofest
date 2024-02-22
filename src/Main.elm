@@ -328,50 +328,71 @@ viewHeader =
 
 viewFooter : Html Msg
 viewFooter =
-    footer [ class "footer p-8 mt-4 bg-neutral text-base-content border-t border-base-20" ]
-        [ aside [ class "text-md" ]
-            [ span []
-                [ text "Fait avec "
-                , Icons.heartHandshake
-                , text " par "
-                , a [ class "link", href "https://github.com/EmileRolley", target "_blank" ] [ text "Milou" ]
-                , text " et "
-                , a [ class "link", href "https://github.com/clemog", target "_blank" ] [ text "Clemog" ]
-                , text " au Moulin Bonne Vie"
+    div []
+        [ footer [ class "footer p-8 mt-4 bg-neutral text-base-content border-t border-base-200" ]
+            [ aside [ class "text-md max-w-6xl" ]
+                [ div []
+                    [ text """
+                    EkoFest a pour objectif de faciliter l'organisation d'événements festifs et culturels éco-responsables.
+                    L'outil permet de rapidement estimer l'impact carbone (en équivalent CO2) d'un événement
+                    afin de repérer les postes les plus émetteurs et anticiper les actions à mettre en place.
+                    """
+                    ]
+                , div [ class "" ]
+                    [ text """
+                    Ce simulateur a été développé dans une démarche de transparence et de partage. 
+                    Ainsi, le code du simulateur est libre et ouvert, de la même manière que le modèle de calcul.
+                    """
+                    ]
+                , div []
+                    [ text "Fait avec "
+                    , Icons.heartHandshake
+                    , text " par "
+                    , a [ class "link", href "https://github.com/EmileRolley", target "_blank" ] [ text "Milou" ]
+                    , text " et "
+                    , a [ class "link", href "https://github.com/clemog", target "_blank" ] [ text "Clemog" ]
+                    , text " au Moulin Bonne Vie"
+                    ]
+
+                -- , div [ class "w-24 " ]
+                ]
+            , nav []
+                [ h6 [ class "footer-title" ] [ text "Liens utiles" ]
+                , a
+                    [ class "link link-hover"
+                    , href "https://ekofest.github.io/publicodes-evenements"
+                    , target "_blank"
+                    ]
+                    [ text "Documentation du modèle" ]
+                , a
+                    [ class "link link-hover"
+                    , href "https://github.com/ekofest/publicodes-evenements"
+                    , target "_blank"
+                    ]
+                    [ text "Code source du modèle" ]
+                , a
+                    [ class "link link-hover"
+                    , href "https://github.com/ekofest/ekofest"
+                    , target "_blank"
+                    ]
+                    [ text "Code source du site" ]
+                ]
+            , a [ class "w-24", href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
+                [ img [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr", alt "Ecoindex Badge" ] []
                 ]
             ]
-        , nav []
-            [ h6 [ class "footer-title" ] [ text "Liens utiles" ]
-            , a
-                [ class "link link-hover"
-                , href "https://ekofest.github.io/publicodes-evenements"
-                , target "_blank"
+        , footer [ class "footer p-4 bg-red-50 text-base-content border-t border-base-200" ]
+            [ div []
+                [ div [ class "text-sm" ]
+                    [ text """Ce simulateur étant en cours de développement, les résultats obtenus
+                sont donc à prendre avec précaution et ne peuvent se substituer à un bilan carbone.
+                Pour toute question ou suggestion, n'hésitez pas """
+                    , a [ class "link", href "mailto:emile.rolley@tuta.io" ] [ text "à nous contacter" ]
+                    , text "."
+                    ]
                 ]
-                [ text "Consulter le modèle de calcul" ]
-            , a
-                [ class "link link-hover"
-                , href "https://github.com/ekofest/ekofest"
-                , target "_blank"
-                ]
-                [ text "Consulter le code source" ]
             ]
         ]
-
-
-
--- div [ class "flex flex-col gap-y-2 items-center justify-center w-full px-4 py-4 mt-4 border-t border-base-200 text-primary bg-neutral" ]
---     [ div [ class "flex flex-col gap-x-4 items-center sm:flex-row" ]
---         [ a
---             [ class "hover:text-primary cursor-pointer"
---             , href "https://ekofest.github.io/publicodes-evenements"
---             , target "_blank"
---             ]
---             [ text "Consulter le modèle de calcul" ]
---         , a
---             [ class "hover:text-primary cursor-pointer"
---         ]
---     ]
--- ]
 
 
 viewError : Maybe AppError -> Html Msg

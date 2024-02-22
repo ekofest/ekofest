@@ -19,9 +19,6 @@ import Json.Encode
 import Markdown
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
-import Simple.Animation as Animation exposing (Animation)
-import Simple.Animation.Animated as Animated
-import Simple.Animation.Property as AnimProp
 import Task
 import UI
 
@@ -399,29 +396,38 @@ viewCategoriesTabs : List UI.Category -> Maybe P.RuleName -> Html Msg
 viewCategoriesTabs categories currentTab =
     div [ class "flex bg-neutral rounded-md border-b border-base-200 mb-4 px-6 overflow-x-auto" ]
         (categories
-            |> List.map
-                (\category ->
+            |> List.indexedMap
+                (\i category ->
                     let
-                        activeClass =
-                            currentTab
-                                |> Maybe.andThen
-                                    (\tab ->
-                                        if tab == category then
-                                            Just " text-primary border-b border-primary"
-
-                                        else
-                                            Nothing
-                                    )
-                                |> Maybe.withDefault ""
+                        isActive =
+                            currentTab == Just category
                     in
                     button
                         [ class
-                            ("rounded-none cursor-pointer p-4 text-xs font-semibold hover:bg-base-100 hover:border-transparent"
-                                ++ activeClass
+                            ("rounded-none cursor-pointer p-4 text-xs hover:bg-base-100 "
+                                ++ (if isActive then
+                                        " border-b border-primary font-semibold "
+
+                                    else
+                                        ""
+                                   )
                             )
                         , onClick (ChangeTab category)
                         ]
-                        [ text (String.toUpper category) ]
+                        [ span
+                            [ class
+                                ("rounded-full px-2 mr-2"
+                                    ++ (if isActive then
+                                            " text-white bg-primary"
+
+                                        else
+                                            " bg-gray-300"
+                                       )
+                                )
+                            ]
+                            [ text (String.fromInt (i + 1)) ]
+                        , text (String.toUpper category)
+                        ]
                 )
         )
 
@@ -438,37 +444,31 @@ viewCategoryQuestions model =
             |> List.map
                 (\( category, _ ) ->
                     let
-                        toShow =
+                        isVisible =
                             currentCategory == category
                     in
-                    Animated.div showCategoryContent
-                        [ class "mb-8"
-                        , style "display"
-                            (if toShow then
-                                "block"
+                    div
+                        [ class
+                            -- TODO: better transition
+                            ("transition-opacity ease-in duration-0"
+                                ++ (if isVisible then
+                                        " mb-8 opacity-100"
 
-                             else
-                                "none"
+                                    else
+                                        " opacity-50"
+                                   )
                             )
                         ]
-                        [ -- div [ class "pl-6 font-semibold p-2 border-b border-base-200 rounded-t-md" ]
-                          -- [ text (String.toUpper category)
-                          -- ]
-                          viewMarkdownCategoryDescription model category
-                        , viewQuestions model (Dict.get category model.questions)
-                        ]
+                        (if isVisible then
+                            [ viewMarkdownCategoryDescription model category
+                            , viewQuestions model (Dict.get category model.questions)
+                            ]
+
+                         else
+                            []
+                        )
                 )
         )
-
-
-showCategoryContent : Animation
-showCategoryContent =
-    Animation.fromTo
-        { duration = 250
-        , options = [ Animation.easeIn ]
-        }
-        [ AnimProp.opacity 0.5 ]
-        [ AnimProp.opacity 1 ]
 
 
 viewMarkdownCategoryDescription : Model -> String -> Html Msg
@@ -816,7 +816,8 @@ viewGraphStat title percent result isHidden =
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
                 [ text (String.toUpper title)
-                , span [ class "ml-2 font-bold" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
+                , span [ class "ml-2 font-bold" ]
+                    [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
                 ]
             , viewCategoryArrow isHidden
             ]
@@ -828,35 +829,25 @@ viewGraphStat title percent result isHidden =
                         ++ " %"
                     )
                 ]
-            , progress [ class "progress progress-primary h-3", value (String.fromFloat percent), Html.Attributes.max "100" ] []
+            , progress
+                [ class "progress progress-primary h-3"
+                , value (String.fromFloat percent)
+                , Html.Attributes.max "100"
+                ]
+                []
             ]
         ]
 
 
 viewCategoryArrow : Maybe Bool -> Html Msg
 viewCategoryArrow isHidable =
-    case isHidable of
-        Nothing ->
-            text ""
+    span [ class "mr-2 text-xs" ]
+        [ if isHidable == Just True then
+            Icons.chevronDown
 
-        Just isHidden ->
-            span [ class "mr-2 text-xs" ]
-                [ if isHidden then
-                    Icons.chevronUp
-
-                  else
-                    Icons.chevronDown
-                ]
-
-
-showSubCat : Animation
-showSubCat =
-    Animation.fromTo
-        { duration = 250
-        , options = []
-        }
-        [ AnimProp.opacity 0.6, AnimProp.y -50 ]
-        [ AnimProp.opacity 1, AnimProp.y 0 ]
+          else
+            Icons.chevronUp
+        ]
 
 
 

@@ -416,7 +416,7 @@ viewError maybeError =
 
 viewCategoriesTabs : List UI.Category -> Maybe P.RuleName -> Html Msg
 viewCategoriesTabs categories currentTab =
-    div [ class "flex bg-neutral rounded-md border-b border-base-200 mb-8 px-6 overflow-x-auto" ]
+    div [ class "flex bg-neutral rounded-md border-b border-base-200 mb-4 px-6 overflow-x-auto" ]
         (categories
             |> List.indexedMap
                 (\i category ->
@@ -479,9 +479,9 @@ viewCategoryQuestions model =
                     div
                         [ class
                             -- TODO: better transition
-                            ("flex flex-col  transition-opacity ease-in duration-0"
+                            ("flex flex-col transition-opacity ease-in duration-0"
                                 ++ (if isVisible then
-                                        " mb-8 opacity-100"
+                                        "  mb-6 opacity-100"
 
                                     else
                                         " opacity-50"
@@ -522,7 +522,7 @@ viewMarkdownCategoryDescription model currentCategory =
             text ""
 
         Just desc ->
-            div [ class "px-6 py-3 mb-4 border-b rounded-t-md bg-orange-50" ]
+            div [ class "px-6 py-3 mb-6 border-b rounded-t-md bg-orange-50" ]
                 [ div [ class "prose max-w-full" ] <|
                     Markdown.toHtml Nothing desc
                 ]

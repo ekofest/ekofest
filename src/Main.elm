@@ -469,15 +469,9 @@ viewCategoryQuestions model =
                         isVisible =
                             currentCategory == category
                     in
-                    let
-                        maybeNextCategory =
-                            model.orderedCategories
-                                |> H.dropUntil ((==) category)
-                                |> List.drop 1
-                                |> List.head
-                    in
                     div
                         [ class
+                            -- Add duration to trigger transition
                             -- TODO: better transition
                             ("flex flex-col transition-opacity ease-in duration-0"
                                 ++ (if isVisible then
@@ -491,16 +485,7 @@ viewCategoryQuestions model =
                         (if isVisible then
                             [ viewMarkdownCategoryDescription model category
                             , viewQuestions model (Dict.get category model.questions)
-                            , case maybeNextCategory of
-                                Just nextCategory ->
-                                    button
-                                        [ class "btn btn-primary btn-wide self-center md:self-end md:w-fit mx-6 mt-6 text-white"
-                                        , onClick (ChangeTab nextCategory)
-                                        ]
-                                        [ text "Suivant", Icons.chevronRight ]
-
-                                Nothing ->
-                                    text ""
+                            , viewPreviousNextButtons model category
                             ]
 
                          else
@@ -508,6 +493,54 @@ viewCategoryQuestions model =
                         )
                 )
         )
+
+
+viewPreviousNextButtons : Model -> String -> Html Msg
+viewPreviousNextButtons model category =
+    let
+        maybeNextCategory =
+            model.orderedCategories
+                |> H.dropUntil ((==) category)
+                |> List.drop 1
+                |> List.head
+    in
+    let
+        maybePreviousCategory =
+            model.orderedCategories
+                |> List.reverse
+                |> H.dropUntil ((==) category)
+                |> List.drop 1
+                |> List.head
+    in
+    div [ class "flex justify-between" ]
+        [ viewNavigationButton [ Icons.chevronLeft, text "Précédent" ] maybePreviousCategory
+        , viewNavigationButton [ text "Suivant", Icons.chevronRight ] maybeNextCategory
+        ]
+
+
+viewNavigationButton : List (Html Msg) -> Maybe P.RuleName -> Html Msg
+viewNavigationButton btnLabel maybeCategory =
+    let
+        btnClass =
+            "btn btn-primary btn-wide btn-sm self-center md:self-end md:w-fit mx-6 mt-6 text-white"
+    in
+    case maybeCategory of
+        Just category ->
+            button
+                [ class
+                    btnClass
+                , onClick (ChangeTab category)
+                ]
+                btnLabel
+
+        Nothing ->
+            button
+                [ class
+                    (btnClass
+                        ++ " btn-disabled"
+                    )
+                ]
+                btnLabel
 
 
 viewMarkdownCategoryDescription : Model -> String -> Html Msg

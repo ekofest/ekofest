@@ -876,18 +876,19 @@ viewGraphStat title percent result isHidden =
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
                 [ text (String.toUpper title)
-                , span [ class "ml-2 font-bold" ]
-                    [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
+                , span [ class "ml-2 font-bold text-primary" ]
+                    [ text
+                        (H.formatFloatToFrenchLocale 1 percent
+                            ++ " %"
+                        )
+                    ]
                 ]
             , viewCategoryArrow isHidden
             ]
-        , div [ class "flex items-center" ]
-            [ div
-                [ class "stat-value text-primary text-2xl text-right w-20 mr-4" ]
-                [ text
-                    (H.formatFloatToFrenchLocale 1 percent
-                        ++ " %"
-                    )
+        , div [ class "flex items-center basis" ]
+            [ div [ class "flex justify-around items-baseline text-accent mr-2" ]
+                [ div [ class "stat-value text-2xl" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                , div [ class "stats-desc ml-2" ] [ text " tCO2e" ]
                 ]
             , progress
                 [ class "progress progress-primary h-3"
@@ -930,17 +931,20 @@ viewSubCategoryGraph subCatInfos =
 viewSubCatGraphStat : String -> Float -> Float -> Html Msg
 viewSubCatGraphStat title percent result =
     div [ class "mb-0" ]
-        [ div [ class "stat-title text-sm flex w-full justify-between" ]
+        [ div [ class "stat-title text-sm" ]
             [ span [] [ text (String.toUpper title) ]
-            , span [] [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
-            ]
-        , div [ class "flex items-center" ]
-            [ div
-                [ class "stat-value text-accent text-lg  w-16 mr-4" ]
+            , span [ class "ml-2 font-bold" ]
                 [ text
                     (H.formatFloatToFrenchLocale 1 percent
                         ++ " %"
                     )
+                ]
+            ]
+        , div [ class "flex items-center" ]
+            [ div
+                [ class "flex items-baseline justify-around text-accent w-15 mr-2" ]
+                [ div [ class "stat-value text-lg" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                , div [ class "stats-desc text-xs ml-2" ] [ text " tCO2e" ]
                 ]
             , progress [ class "progress progress-accent h-2", value (String.fromFloat percent), Html.Attributes.max "100" ] []
             ]

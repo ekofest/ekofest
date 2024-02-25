@@ -41,6 +41,23 @@ getResultRules rules =
             )
 
 
+formatCarbonResult : Maybe Float -> String
+formatCarbonResult num =
+    case num of
+        Just number ->
+            if number > 1000 then
+                round (number / 100)
+                    * 100
+                    |> toFloat
+                    |> format { frenchLocale | decimals = Exact 0 }
+
+            else
+                format { frenchLocale | decimals = Exact 1 } number
+
+        _ ->
+            ""
+
+
 getQuestions : P.RawRules -> List String -> Dict String (List P.RuleName)
 getQuestions rules categories =
     Dict.toList rules

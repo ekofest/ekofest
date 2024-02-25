@@ -771,7 +771,11 @@ viewEvaluation : Maybe Evaluation -> Html Msg
 viewEvaluation eval =
     case eval of
         Just { nodeValue } ->
-            text (P.nodeValueToString nodeValue)
+            text
+                (nodeValue
+                    |> P.nodeValueToFloat
+                    |> H.formatCarbonResult
+                )
 
         Nothing ->
             text ""

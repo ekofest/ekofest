@@ -875,7 +875,7 @@ viewGraphStat title percent result isHidden =
     div []
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
-                [ text (String.toUpper title)
+                [ span [] [ text (String.toUpper title) ]
                 , span [ class "ml-2 font-bold text-primary" ]
                     [ text
                         (H.formatFloatToFrenchLocale 1 percent
@@ -885,17 +885,19 @@ viewGraphStat title percent result isHidden =
                 ]
             , viewCategoryArrow isHidden
             ]
-        , div [ class "flex items-center basis" ]
-            [ div [ class "flex justify-around items-baseline text-accent mr-2" ]
+        , div [ class "flex items-center" ]
+            [ div [ class "flex w-24 overflow-hidden items-baseline text-accent mr-1" ]
                 [ div [ class "stat-value text-2xl" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
                 , div [ class "stats-desc ml-2" ] [ text " tCO2e" ]
                 ]
-            , progress
-                [ class "progress progress-primary h-3"
-                , value (String.fromFloat percent)
-                , Html.Attributes.max "100"
+            , div [ class "flex-1" ]
+                [ progress
+                    [ class "progress progress-primary h-3"
+                    , value (String.fromFloat percent)
+                    , Html.Attributes.max "100"
+                    ]
+                    []
                 ]
-                []
             ]
         ]
 
@@ -942,9 +944,9 @@ viewSubCatGraphStat title percent result =
             ]
         , div [ class "flex items-center" ]
             [ div
-                [ class "flex items-baseline justify-around text-accent w-15 mr-2" ]
+                [ class "flex w-24 overflow-hidden items-baseline text-accent w-15 mr-1" ]
                 [ div [ class "stat-value text-lg" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
-                , div [ class "stats-desc text-xs ml-2" ] [ text " tCO2e" ]
+                , div [ class "stats-desc text-xs ml-1" ] [ text " tCO2e" ]
                 ]
             , progress [ class "progress progress-accent h-2", value (String.fromFloat percent), Html.Attributes.max "100" ] []
             ]

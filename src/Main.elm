@@ -875,26 +875,29 @@ viewGraphStat title percent result isHidden =
     div []
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
-                [ text (String.toUpper title)
-                , span [ class "ml-2 font-bold" ]
-                    [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
+                [ span [] [ text (String.toUpper title) ]
+                , span [ class "ml-2 font-bold text-primary" ]
+                    [ text
+                        (H.formatFloatToFrenchLocale 1 percent
+                            ++ " %"
+                        )
+                    ]
                 ]
             , viewCategoryArrow isHidden
             ]
         , div [ class "flex items-center" ]
-            [ div
-                [ class "stat-value text-primary text-2xl text-right w-20 mr-4" ]
-                [ text
-                    (H.formatFloatToFrenchLocale 1 percent
-                        ++ " %"
-                    )
+            [ div [ class "flex justify-start min-w-24 items-baseline text-accent mr-2" ]
+                [ div [ class "stat-value text-2xl" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                , div [ class "stats-desc ml-2" ] [ text " tCO2e" ]
                 ]
-            , progress
-                [ class "progress progress-primary h-3"
-                , value (String.fromFloat percent)
-                , Html.Attributes.max "100"
+            , div [ class "flex-1" ]
+                [ progress
+                    [ class "progress progress-primary h-3"
+                    , value (String.fromFloat percent)
+                    , Html.Attributes.max "100"
+                    ]
+                    []
                 ]
-                []
             ]
         ]
 
@@ -908,10 +911,6 @@ viewCategoryArrow isHidable =
           else
             Icons.chevronUp
         ]
-
-
-
--- viewSubCategoryGraph : Bool -> List { subCat : P.RuleName, percent : Float, totalSubCat : Float } -> Html Msg
 
 
 viewSubCategoryGraph : List { title : String, percent : Float, result : Float } -> Html Msg
@@ -930,17 +929,20 @@ viewSubCategoryGraph subCatInfos =
 viewSubCatGraphStat : String -> Float -> Float -> Html Msg
 viewSubCatGraphStat title percent result =
     div [ class "mb-0" ]
-        [ div [ class "stat-title text-sm flex w-full justify-between" ]
+        [ div [ class "flex justify-between stat-title text-md" ]
             [ span [] [ text (String.toUpper title) ]
-            , span [] [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
-            ]
-        , div [ class "flex items-center" ]
-            [ div
-                [ class "stat-value text-accent text-lg  w-16 mr-4" ]
+            , span [ class "ml-2 font-bold" ]
                 [ text
                     (H.formatFloatToFrenchLocale 1 percent
                         ++ " %"
                     )
+                ]
+            ]
+        , div [ class "flex items-center" ]
+            [ div
+                [ class "flex justify-start min-w-20 items-baseline text-accent mr-2" ]
+                [ div [ class "stat-value text-lg" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                , div [ class "stats-desc text-sm ml-1" ] [ text " tCO2e" ]
                 ]
             , progress [ class "progress progress-accent h-2", value (String.fromFloat percent), Html.Attributes.max "100" ] []
             ]

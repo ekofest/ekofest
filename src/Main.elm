@@ -149,8 +149,7 @@ evaluate model =
         currentCategory =
             -- NOTE: we always have a currentTab
             Maybe.withDefault "" model.currentTab
-    in
-    let
+
         currentCategoryQuestions =
             Dict.get currentCategory model.questions
                 |> Maybe.withDefault []
@@ -353,8 +352,6 @@ viewFooter =
                     , a [ class "link", href "https://github.com/clemog", target "_blank" ] [ text "Clemog" ]
                     , text " au Moulin Bonne Vie"
                     ]
-
-                -- , div [ class "w-24 " ]
                 ]
             , nav []
                 [ h6 [ class "footer-title" ] [ text "Liens utiles" ]
@@ -469,15 +466,9 @@ viewCategoryQuestions model =
                         isVisible =
                             currentCategory == category
                     in
-                    let
-                        maybeNextCategory =
-                            model.orderedCategories
-                                |> H.dropUntil ((==) category)
-                                |> List.drop 1
-                                |> List.head
-                    in
                     div
                         [ class
+                            -- Add duration to trigger transition
                             -- TODO: better transition
                             ("flex flex-col transition-opacity ease-in duration-0"
                                 ++ (if isVisible then
@@ -489,18 +480,9 @@ viewCategoryQuestions model =
                             )
                         ]
                         (if isVisible then
-                            [ viewMarkdownCategoryDescription model category
+                            [ viewMarkdownCategoryDescription model.rawRules category
                             , viewQuestions model (Dict.get category model.questions)
-                            , case maybeNextCategory of
-                                Just nextCategory ->
-                                    button
-                                        [ class "btn btn-primary btn-wide self-center md:self-end md:w-fit mx-6 mt-6 text-white"
-                                        , onClick (ChangeTab nextCategory)
-                                        ]
-                                        [ text "Suivant", Icons.chevronRight ]
-
-                                Nothing ->
-                                    text ""
+                            , viewCategoriesNavigation model.orderedCategories category
                             ]
 
                          else
@@ -510,11 +492,53 @@ viewCategoryQuestions model =
         )
 
 
-viewMarkdownCategoryDescription : Model -> String -> Html Msg
-viewMarkdownCategoryDescription model currentCategory =
+viewCategoriesNavigation : List UI.Category -> String -> Html Msg
+viewCategoriesNavigation orderedCategories category =
+    let
+        nextList =
+            H.dropUntilNext ((==) category) ("empty" :: orderedCategories)
+
+        maybePrevCategory =
+            if List.head nextList == Just "empty" then
+                Nothing
+
+            else
+                List.head nextList
+
+        maybeNextCategory =
+            nextList
+                |> List.drop 2
+                |> List.head
+    in
+    div [ class "flex justify-between mt-6 mx-6" ]
+        [ case maybePrevCategory of
+            Just prevCategory ->
+                button
+                    [ class "btn btn-sm btn-primary btn-outline self-end"
+                    , onClick (ChangeTab prevCategory)
+                    ]
+                    [ Icons.chevronLeft, text (String.toUpper prevCategory) ]
+
+            _ ->
+                div [] []
+        , case maybeNextCategory of
+            Just nextCategory ->
+                button
+                    [ class "btn btn-sm btn-primary self-end text-white"
+                    , onClick (ChangeTab nextCategory)
+                    ]
+                    [ text (String.toUpper nextCategory), Icons.chevronRight ]
+
+            _ ->
+                div [] []
+        ]
+
+
+viewMarkdownCategoryDescription : P.RawRules -> String -> Html Msg
+viewMarkdownCategoryDescription rawRules currentCategory =
     let
         categoryDescription =
-            Dict.get currentCategory model.rawRules
+            Dict.get currentCategory rawRules
                 |> Maybe.andThen (\ruleCategory -> ruleCategory.description)
     in
     case categoryDescription of
@@ -541,7 +565,7 @@ viewQuestions model maybeQuestions =
 
 viewSubQuestions : Model -> List P.RuleName -> Html Msg
 viewSubQuestions model subquestions =
-    div [ class "bg-neutral rounded-md p-4 border border-base-200" ]
+    div [ class "bg-neutral rounded p-4 border border-base-200" ]
         (subquestions
             |> List.map
                 (\name ->
@@ -610,8 +634,7 @@ viewInput model ( name, rule ) isApplicable =
 
                     else
                         NewAnswer ( name, P.Str val )
-    in
-    let
+
         maybeNodeValue =
             Dict.get name model.evaluations
                 |> Maybe.map .nodeValue
@@ -792,8 +815,7 @@ viewGraph model =
             Dict.get H.totalRuleName model.evaluations
                 |> Maybe.andThen (\{ nodeValue } -> P.nodeValueToFloat nodeValue)
                 |> Maybe.withDefault 0
-    in
-    let
+
         categoryInfos =
             model.categories
                 |> Dict.toList
@@ -827,8 +849,7 @@ viewGraph model =
 
                             else
                                 " border-t border-base-200"
-                    in
-                    let
+
                         isHidden =
                             Dict.get category model.openedCategories
                                 |> Maybe.withDefault True

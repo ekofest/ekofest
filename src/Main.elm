@@ -295,12 +295,13 @@ viewHeader : Html Msg
 viewHeader =
     let
         btnClass =
-            "join-item btn-sm bg-base-100 font-semibold border border-base-200 hover:bg-base-200"
+            "join-item btn-sm bg-base-100 border border-base-200 hover:bg-base-200"
     in
     header []
         [ div [ class "flex items-center justify-between w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ div [ class "text-3xl font-bold text-dark m-2 text-primary" ] [ text "EkoFest" ]
+                [ -- div [ class "text-3xl font-semibold text-dark m-2 text-primary" ] [ text "ekofest" ]
+                  img [ src "/assets/logo.svg", class "w-32" ] []
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
             , div [ class "join join-vertical p-2 sm:join-horizontal" ]
@@ -332,7 +333,7 @@ viewFooter =
             [ aside [ class "text-md max-w-6xl" ]
                 [ div []
                     [ text """
-                    EkoFest a pour objectif de faciliter l'organisation d'événements festifs et culturels éco-responsables.
+                    Ekofest a pour objectif de faciliter l'organisation d'événements festifs et culturels éco-responsables.
                     L'outil permet de rapidement estimer l'impact carbone (en équivalent CO2) d'un événement
                     afin de repérer les postes les plus émetteurs et anticiper les actions à mettre en place.
                     """
@@ -423,19 +424,19 @@ viewCategoriesTabs categories currentTab =
                     in
                     button
                         [ class
-                            ("rounded-none cursor-pointer p-4 text-xs hover:bg-base-100 "
+                            ("flex items-center rounded-none cursor-pointer border-b p-4 text-xs hover:bg-base-100 "
                                 ++ (if isActive then
-                                        " border-b border-primary font-semibold "
+                                        " border-primary font-semibold"
 
                                     else
-                                        ""
+                                        " border-transparent"
                                    )
                             )
                         , onClick (ChangeTab category)
                         ]
                         [ span
                             [ class
-                                ("rounded-full px-2 mr-2"
+                                ("rounded-full inline-flex justify-center items-center inline-block w-5 h-5 mr-2 font-normal"
                                     ++ (if isActive then
                                             " text-white bg-primary"
 
@@ -876,7 +877,7 @@ viewGraphStat title percent result isHidden =
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
                 [ span [] [ text (String.toUpper title) ]
-                , span [ class "ml-2 font-bold text-primary" ]
+                , span [ class "ml-2 font-semibold text-primary" ]
                     [ text
                         (H.formatFloatToFrenchLocale 1 percent
                             ++ " %"

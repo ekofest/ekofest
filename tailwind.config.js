@@ -18,7 +18,7 @@ export default {
                 "4xl": "2.25rem",
             },
             fontFamily: {
-                sans: ["Titillium Web", "sans-serif"],
+                sans: ["Outfit", "Titillium Web", "sans-serif"],
             },
         },
     },

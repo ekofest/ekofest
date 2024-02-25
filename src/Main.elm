@@ -933,7 +933,7 @@ viewSubCategoryGraph subCatInfos =
 viewSubCatGraphStat : String -> Float -> Float -> Html Msg
 viewSubCatGraphStat title percent result =
     div [ class "mb-0" ]
-        [ div [ class "stat-title text-sm" ]
+        [ div [ class "flex justify-between stat-title text-sm" ]
             [ span [] [ text (String.toUpper title) ]
             , span [ class "ml-2 font-bold" ]
                 [ text

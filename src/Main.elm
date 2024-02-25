@@ -886,7 +886,7 @@ viewGraphStat title percent result isHidden =
             , viewCategoryArrow isHidden
             ]
         , div [ class "flex items-center" ]
-            [ div [ class "flex w-24 overflow-hidden items-baseline text-accent mr-1" ]
+            [ div [ class "flex justify-start min-w-24 items-baseline text-accent mr-2" ]
                 [ div [ class "stat-value text-2xl" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
                 , div [ class "stats-desc ml-2" ] [ text " tCO2e" ]
                 ]
@@ -913,10 +913,6 @@ viewCategoryArrow isHidable =
         ]
 
 
-
--- viewSubCategoryGraph : Bool -> List { subCat : P.RuleName, percent : Float, totalSubCat : Float } -> Html Msg
-
-
 viewSubCategoryGraph : List { title : String, percent : Float, result : Float } -> Html Msg
 viewSubCategoryGraph subCatInfos =
     div [ class "p-4 border-t border-base-200 bg-base-100" ]
@@ -933,7 +929,7 @@ viewSubCategoryGraph subCatInfos =
 viewSubCatGraphStat : String -> Float -> Float -> Html Msg
 viewSubCatGraphStat title percent result =
     div [ class "mb-0" ]
-        [ div [ class "flex justify-between stat-title text-sm" ]
+        [ div [ class "flex justify-between stat-title text-md" ]
             [ span [] [ text (String.toUpper title) ]
             , span [ class "ml-2 font-bold" ]
                 [ text
@@ -944,9 +940,9 @@ viewSubCatGraphStat title percent result =
             ]
         , div [ class "flex items-center" ]
             [ div
-                [ class "flex w-24 overflow-hidden items-baseline text-accent w-15 mr-1" ]
+                [ class "flex justify-start min-w-20 items-baseline text-accent mr-2" ]
                 [ div [ class "stat-value text-lg" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
-                , div [ class "stats-desc text-xs ml-1" ] [ text " tCO2e" ]
+                , div [ class "stats-desc text-sm ml-1" ] [ text " tCO2e" ]
                 ]
             , progress [ class "progress progress-accent h-2", value (String.fromFloat percent), Html.Attributes.max "100" ] []
             ]

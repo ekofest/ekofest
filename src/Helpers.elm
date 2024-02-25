@@ -113,7 +113,7 @@ getOptionTitle rules contexte optionVal =
 
 formatFloatToFrenchLocale : Int -> Float -> String
 formatFloatToFrenchLocale n =
-    format { frenchLocale | decimals = Max n }
+    format { frenchLocale | decimals = Exact n }
 
 
 filesDecoder : Decoder (List File)

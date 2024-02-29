@@ -1,6 +1,5 @@
 module Main exposing (..)
 
-import Array
 import Browser
 import Dict exposing (Dict)
 import Effect
@@ -330,7 +329,7 @@ viewFooter : Html Msg
 viewFooter =
     div []
         [ footer [ class "footer p-8 mt-8 md:mt-20 bg-neutral text-base-content border-t border-base-200" ]
-            [ aside [ class "text-md max-w-6xl" ]
+            [ aside [ class "text-md max-w-4xl" ]
                 [ div []
                     [ text """
                     Ekofest a pour objectif de faciliter l'organisation d'événements festifs et culturels éco-responsables.
@@ -424,19 +423,19 @@ viewCategoriesTabs categories currentTab =
                     in
                     button
                         [ class
-                            ("flex items-center rounded-none cursor-pointer border-b p-4 text-xs hover:bg-base-100 "
+                            ("flex items-center rounded-none cursor-pointer border-b p-4 tracking-wide text-xs hover:bg-base-100 "
                                 ++ (if isActive then
                                         " border-primary font-semibold"
 
                                     else
-                                        " border-transparent"
+                                        " border-transparent font-medium"
                                    )
                             )
                         , onClick (ChangeTab category)
                         ]
                         [ span
                             [ class
-                                ("rounded-full inline-flex justify-center items-center inline-block w-5 h-5 mr-2 font-normal"
+                                ("rounded-full inline-flex justify-center items-center w-5 h-5 mr-2 font-normal"
                                     ++ (if isActive then
                                             " text-white bg-primary"
 
@@ -759,7 +758,7 @@ viewResult model =
                         [ div [ class "stat-title" ]
                             [ text (H.getTitle model.rawRules name) ]
                         , div [ class "flex items-baseline" ]
-                            [ div [ class "stat-value text-primary" ]
+                            [ div [ class "stat-value text-primary font-bold" ]
                                 [ viewEvaluation (Dict.get name model.evaluations) ]
                             , div [ class "stat-desc text-primary ml-2 text-base" ] [ viewUnit rule ]
                             ]
@@ -888,7 +887,7 @@ viewGraphStat title percent result isHidden =
             ]
         , div [ class "flex items-center" ]
             [ div [ class "flex justify-start min-w-24 items-baseline text-accent mr-2" ]
-                [ div [ class "stat-value text-2xl" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                [ div [ class "stat-value font-semibold text-2xl" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
                 , div [ class "stats-desc ml-2" ] [ text " tCO2e" ]
                 ]
             , div [ class "flex-1" ]
@@ -942,7 +941,7 @@ viewSubCatGraphStat title percent result =
         , div [ class "flex items-center" ]
             [ div
                 [ class "flex justify-start min-w-20 items-baseline text-accent mr-2" ]
-                [ div [ class "stat-value text-lg" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                [ div [ class "stat-value font-semibold text-lg" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
                 , div [ class "stats-desc text-sm ml-1" ] [ text " tCO2e" ]
                 ]
             , progress [ class "progress progress-accent h-2", value (String.fromFloat percent), Html.Attributes.max "100" ] []

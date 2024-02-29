@@ -6,6 +6,9 @@ export default {
     },
     theme: {
         extend: {
+            screens: {
+                xsm: "400px",
+            },
             fontSize: {
                 xs: ".75rem",
                 sm: ".875rem",
@@ -18,7 +21,7 @@ export default {
                 "4xl": "2.25rem",
             },
             fontFamily: {
-                sans: ["Titillium Web", "sans-serif"],
+                sans: ["Titillium Web", "Outfit", "sans-serif"],
             },
         },
     },

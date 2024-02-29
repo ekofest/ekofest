@@ -297,13 +297,13 @@ viewHeader =
             "join-item btn-sm bg-base-100 border border-base-200 hover:bg-base-200"
     in
     header []
-        [ div [ class "flex items-center justify-between w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
+        [ div [ class "flex md:items-center md:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
                 [ -- div [ class "text-3xl font-semibold text-dark m-2 text-primary" ] [ text "ekofest" ]
                   img [ src "/assets/logo.svg", class "w-32" ] []
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
-            , div [ class "join join-vertical p-2 sm:join-horizontal" ]
+            , div [ class "join p-2" ]
                 [ button [ class btnClass, onClick ResetSituation ]
                     [ span [ class "mr-2" ] [ Icons.refresh ], text "Recommencer" ]
                 , button [ class btnClass, onClick ExportSituation ]

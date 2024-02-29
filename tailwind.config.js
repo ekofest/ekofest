@@ -6,6 +6,9 @@ export default {
     },
     theme: {
         extend: {
+            screens: {
+                xsm: "400px",
+            },
             fontSize: {
                 xs: ".75rem",
                 sm: ".875rem",

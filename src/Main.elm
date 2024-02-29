@@ -297,18 +297,18 @@ viewHeader =
             "join-item btn-sm bg-base-100 border border-base-200 hover:bg-base-200"
     in
     header []
-        [ div [ class "flex md:items-center md:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
+        [ div [ class "flex md:items-center sm:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
                 [ -- div [ class "text-3xl font-semibold text-dark m-2 text-primary" ] [ text "ekofest" ]
-                  img [ src "/assets/logo.svg", class "w-32" ] []
+                  img [ src "/assets/logo.svg", class "w-32 m-4" ] []
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
-            , div [ class "join p-2" ]
+            , div [ class "join p-2 mb-4 sm:mb-0" ]
                 [ button [ class btnClass, onClick ResetSituation ]
-                    [ span [ class "mr-2" ] [ Icons.refresh ], text "Recommencer" ]
+                    [ span [ class "mr-2" ] [ Icons.refresh ], span [ class "invisible xsm:visible" ] [ text "Recommencer" ] ]
                 , button [ class btnClass, onClick ExportSituation ]
                     [ span [ class "mr-2" ] [ Icons.download ]
-                    , text "Télécharger"
+                    , span [ class "invisible xsm:visible" ] [ text "Télécharger" ]
                     ]
                 , button
                     [ class btnClass
@@ -318,7 +318,7 @@ viewHeader =
                     , onClick SelectFile
                     ]
                     [ span [ class "mr-2" ] [ Icons.upload ]
-                    , text "Importer"
+                    , span [ class "invisible xsm:visible" ] [ text "Importer" ]
                     ]
                 ]
             ]

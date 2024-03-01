@@ -339,7 +339,7 @@ viewFooter =
                     ]
                 , div [ class "" ]
                     [ text """
-                    Ce simulateur a été développé dans une démarche de transparence et de partage. 
+                    Ce simulateur a été développé dans une démarche de transparence et de partage.
                     Ainsi, le code du simulateur est libre et ouvert, de la même manière que le modèle de calcul.
                     """
                     ]
@@ -350,7 +350,7 @@ viewFooter =
                     , a [ class "link", href "https://github.com/EmileRolley", target "_blank" ] [ text "Milou" ]
                     , text " et "
                     , a [ class "link", href "https://github.com/clemog", target "_blank" ] [ text "Clemog" ]
-                    , text " au Moulin Bonne Vie"
+                    , text " au Moulin Bonne Vie en février 2024."
                     ]
                 ]
             , nav []

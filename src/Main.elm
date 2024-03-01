@@ -149,8 +149,7 @@ evaluate model =
         currentCategory =
             -- NOTE: we always have a currentTab
             Maybe.withDefault "" model.currentTab
-    in
-    let
+
         currentCategoryQuestions =
             Dict.get currentCategory model.questions
                 |> Maybe.withDefault []
@@ -353,8 +352,6 @@ viewFooter =
                     , a [ class "link", href "https://github.com/clemog", target "_blank" ] [ text "Clemog" ]
                     , text " au Moulin Bonne Vie"
                     ]
-
-                -- , div [ class "w-24 " ]
                 ]
             , nav []
                 [ h6 [ class "footer-title" ] [ text "Liens utiles" ]
@@ -469,15 +466,9 @@ viewCategoryQuestions model =
                         isVisible =
                             currentCategory == category
                     in
-                    let
-                        maybeNextCategory =
-                            model.orderedCategories
-                                |> H.dropUntil ((==) category)
-                                |> List.drop 1
-                                |> List.head
-                    in
                     div
                         [ class
+                            -- Add duration to trigger transition
                             -- TODO: better transition
                             ("flex flex-col transition-opacity ease-in duration-0"
                                 ++ (if isVisible then
@@ -489,18 +480,9 @@ viewCategoryQuestions model =
                             )
                         ]
                         (if isVisible then
-                            [ viewMarkdownCategoryDescription model category
+                            [ viewMarkdownCategoryDescription model.rawRules category
                             , viewQuestions model (Dict.get category model.questions)
-                            , case maybeNextCategory of
-                                Just nextCategory ->
-                                    button
-                                        [ class "btn btn-primary btn-wide self-center md:self-end md:w-fit mx-6 mt-6 text-white"
-                                        , onClick (ChangeTab nextCategory)
-                                        ]
-                                        [ text "Suivant", Icons.chevronRight ]
-
-                                Nothing ->
-                                    text ""
+                            , viewCategoriesNavigation model.orderedCategories category
                             ]
 
                          else
@@ -510,11 +492,53 @@ viewCategoryQuestions model =
         )
 
 
-viewMarkdownCategoryDescription : Model -> String -> Html Msg
-viewMarkdownCategoryDescription model currentCategory =
+viewCategoriesNavigation : List UI.Category -> String -> Html Msg
+viewCategoriesNavigation orderedCategories category =
+    let
+        nextList =
+            H.dropUntilNext ((==) category) ("empty" :: orderedCategories)
+
+        maybePrevCategory =
+            if List.head nextList == Just "empty" then
+                Nothing
+
+            else
+                List.head nextList
+
+        maybeNextCategory =
+            nextList
+                |> List.drop 2
+                |> List.head
+    in
+    div [ class "flex justify-between mt-6 mx-6" ]
+        [ case maybePrevCategory of
+            Just prevCategory ->
+                button
+                    [ class "btn btn-sm btn-primary btn-outline self-end"
+                    , onClick (ChangeTab prevCategory)
+                    ]
+                    [ Icons.chevronLeft, text (String.toUpper prevCategory) ]
+
+            _ ->
+                div [] []
+        , case maybeNextCategory of
+            Just nextCategory ->
+                button
+                    [ class "btn btn-sm btn-primary self-end text-white"
+                    , onClick (ChangeTab nextCategory)
+                    ]
+                    [ text (String.toUpper nextCategory), Icons.chevronRight ]
+
+            _ ->
+                div [] []
+        ]
+
+
+viewMarkdownCategoryDescription : P.RawRules -> String -> Html Msg
+viewMarkdownCategoryDescription rawRules currentCategory =
     let
         categoryDescription =
-            Dict.get currentCategory model.rawRules
+            Dict.get currentCategory rawRules
                 |> Maybe.andThen (\ruleCategory -> ruleCategory.description)
     in
     case categoryDescription of
@@ -541,7 +565,7 @@ viewQuestions model maybeQuestions =
 
 viewSubQuestions : Model -> List P.RuleName -> Html Msg
 viewSubQuestions model subquestions =
-    div [ class "bg-neutral rounded-md p-4 border border-base-200" ]
+    div [ class "bg-neutral rounded p-4 border border-base-200" ]
         (subquestions
             |> List.map
                 (\name ->
@@ -610,8 +634,7 @@ viewInput model ( name, rule ) isApplicable =
 
                     else
                         NewAnswer ( name, P.Str val )
-    in
-    let
+
         maybeNodeValue =
             Dict.get name model.evaluations
                 |> Maybe.map .nodeValue
@@ -796,8 +819,7 @@ viewGraph model =
             Dict.get H.totalRuleName model.evaluations
                 |> Maybe.andThen (\{ nodeValue } -> P.nodeValueToFloat nodeValue)
                 |> Maybe.withDefault 0
-    in
-    let
+
         categoryInfos =
             model.categories
                 |> Dict.toList
@@ -831,8 +853,7 @@ viewGraph model =
 
                             else
                                 " border-t border-base-200"
-                    in
-                    let
+
                         isHidden =
                             Dict.get category model.openedCategories
                                 |> Maybe.withDefault True
@@ -858,26 +879,29 @@ viewGraphStat title percent result isHidden =
     div []
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
-                [ text (String.toUpper title)
-                , span [ class "ml-2 font-bold" ]
-                    [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
+                [ span [] [ text (String.toUpper title) ]
+                , span [ class "ml-2 font-bold text-primary" ]
+                    [ text
+                        (H.formatFloatToFrenchLocale 1 percent
+                            ++ " %"
+                        )
+                    ]
                 ]
             , viewCategoryArrow isHidden
             ]
         , div [ class "flex items-center" ]
-            [ div
-                [ class "stat-value text-primary text-2xl text-right w-20 mr-4" ]
-                [ text
-                    (H.formatFloatToFrenchLocale 1 percent
-                        ++ " %"
-                    )
+            [ div [ class "flex justify-start min-w-24 items-baseline text-accent mr-2" ]
+                [ div [ class "stat-value text-2xl" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                , div [ class "stats-desc ml-2" ] [ text " tCO2e" ]
                 ]
-            , progress
-                [ class "progress progress-primary h-3"
-                , value (String.fromFloat percent)
-                , Html.Attributes.max "100"
+            , div [ class "flex-1" ]
+                [ progress
+                    [ class "progress progress-primary h-3"
+                    , value (String.fromFloat percent)
+                    , Html.Attributes.max "100"
+                    ]
+                    []
                 ]
-                []
             ]
         ]
 
@@ -891,10 +915,6 @@ viewCategoryArrow isHidable =
           else
             Icons.chevronUp
         ]
-
-
-
--- viewSubCategoryGraph : Bool -> List { subCat : P.RuleName, percent : Float, totalSubCat : Float } -> Html Msg
 
 
 viewSubCategoryGraph : List { title : String, percent : Float, result : Float } -> Html Msg
@@ -913,17 +933,20 @@ viewSubCategoryGraph subCatInfos =
 viewSubCatGraphStat : String -> Float -> Float -> Html Msg
 viewSubCatGraphStat title percent result =
     div [ class "mb-0" ]
-        [ div [ class "stat-title text-sm flex w-full justify-between" ]
+        [ div [ class "flex justify-between stat-title text-md" ]
             [ span [] [ text (String.toUpper title) ]
-            , span [] [ text (H.formatFloatToFrenchLocale 0 (result / 1000) ++ " tCO2e") ]
-            ]
-        , div [ class "flex items-center" ]
-            [ div
-                [ class "stat-value text-accent text-lg  w-16 mr-4" ]
+            , span [ class "ml-2 font-bold" ]
                 [ text
                     (H.formatFloatToFrenchLocale 1 percent
                         ++ " %"
                     )
+                ]
+            ]
+        , div [ class "flex items-center" ]
+            [ div
+                [ class "flex justify-start min-w-20 items-baseline text-accent mr-2" ]
+                [ div [ class "stat-value text-lg" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                , div [ class "stats-desc text-sm ml-1" ] [ text " tCO2e" ]
                 ]
             , progress [ class "progress progress-accent h-2", value (String.fromFloat percent), Html.Attributes.max "100" ] []
             ]

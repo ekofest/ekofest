@@ -15,11 +15,17 @@ export default class EkofestEngine extends Engine {
         this.situation = {}
     }
 
-    public static createAsync(rules: Record<RuleName, RawRule>, elmApp: any) {
+    public static createAsync(
+        rules: Readonly<Record<RuleName, RawRule>>,
+        situation: Readonly<Situation>,
+        elmApp: any
+    ) {
         return new Promise<EkofestEngine>((resolve) => {
             const nbRules = Object.keys(rules).length
             console.time(`[publicodes:parsing] ${nbRules} rules`)
-            const engine = new EkofestEngine(rules, elmApp)
+            const engine = new EkofestEngine(rules, elmApp).setSituation(
+                situation
+            )
             console.timeEnd(`[publicodes:parsing] ${nbRules} rules`)
             resolve(engine)
         })

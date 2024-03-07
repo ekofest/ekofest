@@ -17,7 +17,7 @@ let app = Elm.Main.init({
 // NOTE(@EmileRolley): I encapsulate the engine in a promise to be able to
 // initialize it asynchronously. This is useful to avoid blocking the UI while
 // the engine is being initialized.
-const engine = await EkofestEngine.createAsync(rules, app)
+const engine = await EkofestEngine.createAsync(rules, situation, app)
 
 app.ports.engineInitialized.send(null)
 

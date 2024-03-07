@@ -5,7 +5,7 @@ export type PublicodeValue = string | number
 export type RawRule = Omit<Rule, "nom"> | string | number
 export type Situation = Record<RuleName, PublicodeValue>
 
-export default class extends Engine {
+export default class EkofestEngine extends Engine {
     private elmApp: any
     private situation: Readonly<Situation>
 
@@ -13,6 +13,22 @@ export default class extends Engine {
         super(rules)
         this.elmApp = elmApp
         this.situation = {}
+    }
+
+    public static createAsync(
+        rules: Readonly<Record<RuleName, RawRule>>,
+        situation: Readonly<Situation>,
+        elmApp: any
+    ) {
+        return new Promise<EkofestEngine>((resolve) => {
+            const nbRules = Object.keys(rules).length
+            console.time(`[publicodes:parsing] ${nbRules} rules`)
+            const engine = new EkofestEngine(rules, elmApp).setSituation(
+                situation
+            )
+            console.timeEnd(`[publicodes:parsing] ${nbRules} rules`)
+            resolve(engine)
+        })
     }
 
     getSituation(): Situation {

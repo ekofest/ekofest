@@ -21,7 +21,7 @@ export default {
                 "4xl": "2.25rem",
             },
             fontFamily: {
-                sans: ["Titillium Web", "Outfit", "sans-serif"],
+                sans: ["Titillium Web", "sans-serif"],
             },
         },
     },
@@ -30,12 +30,12 @@ export default {
         themes: [
             {
                 cutsomTheme: {
-                    // primary: "#bb4a02",
                     primary: "#EF5F06",
+                    // accent: "#CA5002",
                     secondary: "#AFD5AA",
                     // accent: "#ffc070",
                     accent: "#5C5346",
-                    neutral: "#fcfcfc",
+                    neutral: "#ffffff",
                     "base-100": "#F0F2EF",
                     info: "#ffffff",
                     success: "#2dd4bf",

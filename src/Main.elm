@@ -55,7 +55,8 @@ evaluationDecoder =
 
 
 type alias Model =
-    { rawRules : P.RawRules
+    { engineInitialized : Bool
+    , rawRules : P.RawRules
     , evaluations : Dict P.RuleName Evaluation
     , situation : P.Situation
     , questions : UI.Questions
@@ -76,7 +77,8 @@ type AppError
 
 emptyModel : Model
 emptyModel =
-    { rawRules = Dict.empty
+    { engineInitialized = False
+    , rawRules = Dict.empty
     , evaluations = Dict.empty
     , questions = Dict.empty
     , situation = Dict.empty
@@ -144,24 +146,28 @@ init flags =
 -}
 evaluate : Model -> ( Model, Cmd Msg )
 evaluate model =
-    let
-        currentCategory =
-            -- NOTE: we always have a currentTab
-            Maybe.withDefault "" model.currentTab
+    if model.engineInitialized then
+        let
+            currentCategory =
+                -- NOTE: we always have a currentTab
+                Maybe.withDefault "" model.currentTab
 
-        currentCategoryQuestions =
-            Dict.get currentCategory model.questions
-                |> Maybe.withDefault []
-                |> List.concat
-    in
-    ( model
-    , model.resultRules
-        |> List.map Tuple.first
-        |> List.append currentCategoryQuestions
-        |> List.append model.orderedCategories
-        |> List.append model.allCategorieAndSubcategorieNames
-        |> Effect.evaluateAll
-    )
+            currentCategoryQuestions =
+                Dict.get currentCategory model.questions
+                    |> Maybe.withDefault []
+                    |> List.concat
+        in
+        ( model
+        , model.resultRules
+            |> List.map Tuple.first
+            |> List.append currentCategoryQuestions
+            |> List.append model.orderedCategories
+            |> List.append model.allCategorieAndSubcategorieNames
+            |> Effect.evaluateAll
+        )
+
+    else
+        ( model, Cmd.none )
 
 
 
@@ -180,12 +186,16 @@ type Msg
     | NewEncodedSituation String
     | ExportSituation
     | ResetSituation
+    | EngineInitialized
     | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        EngineInitialized ->
+            evaluate { model | engineInitialized = True }
+
         NewAnswer ( name, value ) ->
             ( { model | situation = Dict.insert name value model.situation }
             , Effect.updateSituation ( name, P.nodeValueEncoder value )
@@ -265,7 +275,7 @@ view model =
         [ div []
             [ viewHeader
             , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
-                div [ class "flex flex-col w-full items-center" ]
+                div [ class "flex flex-col w-full h-full items-center" ]
                     [ viewError model.currentError
                     , div [ class "loading loading-lg text-primary mt-4" ] []
                     ]
@@ -279,10 +289,16 @@ view model =
                             [ lazy viewCategoryQuestions model
                             ]
                         , lazy viewError model.currentError
-                        , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
-                            [ lazy viewResult model
-                            , lazy viewGraph model
-                            ]
+                        , if not model.engineInitialized then
+                            div [ class "flex flex-col w-full h-full items-center" ]
+                                [ div [ class "loading loading-lg text-primary mt-4" ] []
+                                ]
+
+                          else
+                            div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
+                                [ lazy viewResult model
+                                , lazy viewGraph model
+                                ]
                         ]
                     ]
             ]
@@ -299,8 +315,7 @@ viewHeader =
     header []
         [ div [ class "flex md:items-center sm:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ -- div [ class "text-3xl font-semibold text-dark m-2 text-primary" ] [ text "ekofest" ]
-                  img [ src "/assets/logo.svg", class "w-32 m-4" ] []
+                [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
             , div [ class "join p-2 mb-4 sm:mb-0" ]
@@ -374,8 +389,14 @@ viewFooter =
                     ]
                     [ text "Code source du site" ]
                 ]
-            , a [ class "w-24", href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
-                [ img [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr", alt "Ecoindex Badge" ] []
+            , a [ href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
+                [ img
+                    [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr"
+                    , alt "Ecoindex Badge"
+                    , class "w-24"
+                    , width 96
+                    ]
+                    []
                 ]
             ]
         , footer [ class "footer p-4 bg-red-50 text-base-content border-t border-base-200" ]
@@ -614,7 +635,7 @@ viewCustomTransportTotal model name =
                 div [ class "text-end text-success" ] [ text "100 % ✅" ]
 
             else
-                div [ class "text-end text-error" ] [ text (H.formatFloatToFrenchLocale 1 num ++ " %") ]
+                div [ class "text-end text-error" ] [ text (H.formatPercent num) ]
 
         _ ->
             text ""
@@ -760,7 +781,7 @@ viewResult model =
                         , div [ class "flex items-baseline" ]
                             [ div [ class "stat-value text-primary font-bold" ]
                                 [ viewEvaluation (Dict.get name model.evaluations) ]
-                            , div [ class "stat-desc text-primary ml-2 text-base" ] [ viewUnit rule ]
+                            , div [ class "stat-desc text-primary ml-2 text-base font-semibold" ] [ viewUnit rule ]
                             ]
                         ]
                 )
@@ -876,11 +897,8 @@ viewGraphStat title percent result isHidden =
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
                 [ span [] [ text (String.toUpper title) ]
-                , span [ class "ml-2 font-semibold text-primary" ]
-                    [ text
-                        (H.formatFloatToFrenchLocale 1 percent
-                            ++ " %"
-                        )
+                , span [ class "ml-2 font-bold text-primary" ]
+                    [ text (H.formatPercent percent)
                     ]
                 ]
             , viewCategoryArrow isHidden
@@ -932,10 +950,7 @@ viewSubCatGraphStat title percent result =
         [ div [ class "flex justify-between stat-title text-md" ]
             [ span [] [ text (String.toUpper title) ]
             , span [ class "ml-2 font-bold" ]
-                [ text
-                    (H.formatFloatToFrenchLocale 1 percent
-                        ++ " %"
-                    )
+                [ text (H.formatPercent percent)
                 ]
             ]
         , div [ class "flex items-center" ]
@@ -959,4 +974,5 @@ subscriptions _ =
         [ Effect.evaluatedRule UpdateEvaluation
         , Effect.evaluatedRules UpdateAllEvaluation
         , Effect.situationUpdated (\_ -> Evaluate)
+        , Effect.engineInitialized (\_ -> EngineInitialized)
         ]

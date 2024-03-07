@@ -315,8 +315,7 @@ viewHeader =
     header []
         [ div [ class "flex md:items-center sm:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ -- div [ class "text-3xl font-semibold text-dark m-2 text-primary" ] [ text "ekofest" ]
-                  img [ src "/assets/logo.svg", class "w-32 m-4" ] []
+                [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
             , div [ class "join p-2 mb-4 sm:mb-0" ]
@@ -390,10 +389,15 @@ viewFooter =
                     ]
                     [ text "Code source du site" ]
                 ]
-
-            -- , a [ class "w-24", href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
-            --     [ img [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr", alt "Ecoindex Badge" ] []
-            --     ]
+            , a [ href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
+                [ img
+                    [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr"
+                    , alt "Ecoindex Badge"
+                    , class "w-24"
+                    , width 96
+                    ]
+                    []
+                ]
             ]
         , footer [ class "footer p-4 bg-red-50 text-base-content border-t border-base-200" ]
             [ div []

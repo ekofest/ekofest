@@ -635,7 +635,7 @@ viewCustomTransportTotal model name =
                 div [ class "text-end text-success" ] [ text "100 % ✅" ]
 
             else
-                div [ class "text-end text-error" ] [ text (H.formatFloatToFrenchLocale 1 num ++ " %") ]
+                div [ class "text-end text-error" ] [ text (H.formatPercent num) ]
 
         _ ->
             text ""
@@ -781,7 +781,7 @@ viewResult model =
                         , div [ class "flex items-baseline" ]
                             [ div [ class "stat-value text-primary font-bold" ]
                                 [ viewEvaluation (Dict.get name model.evaluations) ]
-                            , div [ class "stat-desc text-primary ml-2 text-base" ] [ viewUnit rule ]
+                            , div [ class "stat-desc text-primary ml-2 text-base font-semibold" ] [ viewUnit rule ]
                             ]
                         ]
                 )
@@ -897,11 +897,8 @@ viewGraphStat title percent result isHidden =
         [ div [ class "stat-title flex w-full justify-between" ]
             [ span []
                 [ span [] [ text (String.toUpper title) ]
-                , span [ class "ml-2 font-semibold text-primary" ]
-                    [ text
-                        (H.formatFloatToFrenchLocale 1 percent
-                            ++ " %"
-                        )
+                , span [ class "ml-2 font-bold text-primary" ]
+                    [ text (H.formatPercent percent)
                     ]
                 ]
             , viewCategoryArrow isHidden
@@ -953,10 +950,7 @@ viewSubCatGraphStat title percent result =
         [ div [ class "flex justify-between stat-title text-md" ]
             [ span [] [ text (String.toUpper title) ]
             , span [ class "ml-2 font-bold" ]
-                [ text
-                    (H.formatFloatToFrenchLocale 1 percent
-                        ++ " %"
-                    )
+                [ text (H.formatPercent percent)
                 ]
             ]
         , div [ class "flex items-center" ]

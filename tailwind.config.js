@@ -30,8 +30,8 @@ export default {
         themes: [
             {
                 cutsomTheme: {
-                    // primary: "#bb4a02",
                     primary: "#EF5F06",
+                    // accent: "#CA5002",
                     secondary: "#AFD5AA",
                     // accent: "#ffc070",
                     accent: "#5C5346",

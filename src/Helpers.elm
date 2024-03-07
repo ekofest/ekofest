@@ -116,6 +116,11 @@ formatFloatToFrenchLocale n =
     format { frenchLocale | decimals = Exact n }
 
 
+formatPercent : Float -> String
+formatPercent pct =
+    formatFloatToFrenchLocale 1 pct ++ " %"
+
+
 filesDecoder : Decoder (List File)
 filesDecoder =
     Decode.at [ "target", "files" ] (Decode.list File.decoder)

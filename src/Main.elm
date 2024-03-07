@@ -55,7 +55,8 @@ evaluationDecoder =
 
 
 type alias Model =
-    { rawRules : P.RawRules
+    { engineInitialized : Bool
+    , rawRules : P.RawRules
     , evaluations : Dict P.RuleName Evaluation
     , situation : P.Situation
     , questions : UI.Questions
@@ -76,7 +77,8 @@ type AppError
 
 emptyModel : Model
 emptyModel =
-    { rawRules = Dict.empty
+    { engineInitialized = False
+    , rawRules = Dict.empty
     , evaluations = Dict.empty
     , questions = Dict.empty
     , situation = Dict.empty
@@ -144,24 +146,28 @@ init flags =
 -}
 evaluate : Model -> ( Model, Cmd Msg )
 evaluate model =
-    let
-        currentCategory =
-            -- NOTE: we always have a currentTab
-            Maybe.withDefault "" model.currentTab
+    if model.engineInitialized then
+        let
+            currentCategory =
+                -- NOTE: we always have a currentTab
+                Maybe.withDefault "" model.currentTab
 
-        currentCategoryQuestions =
-            Dict.get currentCategory model.questions
-                |> Maybe.withDefault []
-                |> List.concat
-    in
-    ( model
-    , model.resultRules
-        |> List.map Tuple.first
-        |> List.append currentCategoryQuestions
-        |> List.append model.orderedCategories
-        |> List.append model.allCategorieAndSubcategorieNames
-        |> Effect.evaluateAll
-    )
+            currentCategoryQuestions =
+                Dict.get currentCategory model.questions
+                    |> Maybe.withDefault []
+                    |> List.concat
+        in
+        ( model
+        , model.resultRules
+            |> List.map Tuple.first
+            |> List.append currentCategoryQuestions
+            |> List.append model.orderedCategories
+            |> List.append model.allCategorieAndSubcategorieNames
+            |> Effect.evaluateAll
+        )
+
+    else
+        ( model, Cmd.none )
 
 
 
@@ -180,12 +186,16 @@ type Msg
     | NewEncodedSituation String
     | ExportSituation
     | ResetSituation
+    | EngineInitialized
     | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        EngineInitialized ->
+            evaluate { model | engineInitialized = True }
+
         NewAnswer ( name, value ) ->
             ( { model | situation = Dict.insert name value model.situation }
             , Effect.updateSituation ( name, P.nodeValueEncoder value )
@@ -264,7 +274,7 @@ view model =
     div [ class "flex flex-col min-h-screen justify-between" ]
         [ div []
             [ viewHeader
-            , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
+            , if not model.engineInitialized || Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
                 div [ class "flex flex-col w-full items-center" ]
                     [ viewError model.currentError
                     , div [ class "loading loading-lg text-primary mt-4" ] []
@@ -959,4 +969,5 @@ subscriptions _ =
         [ Effect.evaluatedRule UpdateEvaluation
         , Effect.evaluatedRules UpdateAllEvaluation
         , Effect.situationUpdated (\_ -> Evaluate)
+        , Effect.engineInitialized (\_ -> EngineInitialized)
         ]

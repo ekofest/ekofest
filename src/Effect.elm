@@ -33,3 +33,6 @@ port evaluatedRules : (List ( P.RuleName, Json.Encode.Value ) -> msg) -> Sub msg
 
 
 port situationUpdated : (() -> msg) -> Sub msg
+
+
+port engineInitialized : (() -> msg) -> Sub msg

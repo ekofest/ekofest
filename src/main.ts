@@ -1,10 +1,10 @@
 // @ts-ignore
 import { Elm } from "./Main.elm"
-import EcoFestEngine, {
+import EkofestEngine, {
     PublicodeValue,
     RuleName,
     Situation,
-} from "./EcoFestEngine"
+} from "./EkofestEngine"
 import rules, { ui } from "publicodes-evenements"
 
 let situation = JSON.parse(localStorage.getItem("situation") ?? "{}")
@@ -14,11 +14,12 @@ let app = Elm.Main.init({
     node: document.getElementById("elm-app"),
 })
 
-const nbRules = Object.keys(rules).length
+// NOTE(@EmileRolley): I encapsulate the engine in a promise to be able to
+// initialize it asynchronously. This is useful to avoid blocking the UI while
+// the engine is being initialized.
+const engine = await EkofestEngine.createAsync(rules, app)
 
-console.time(`[publicodes:parsing] ${nbRules} rules`)
-const engine = new EcoFestEngine(rules, app).setSituation(situation)
-console.timeEnd(`[publicodes:parsing] ${nbRules} rules`)
+app.ports.engineInitialized.send(null)
 
 app.ports.setSituation.subscribe((newSituation: Situation) => {
     engine.setSituation(newSituation)

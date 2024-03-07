@@ -11,7 +11,7 @@ export default defineConfig({
     },
     build: {
         outDir: "build",
-        target: "es2020",
+        target: "esnext",
     },
     optimizeDeps: {
         exclude: ["publicodes-evenements"],

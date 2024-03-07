@@ -274,8 +274,8 @@ view model =
     div [ class "flex flex-col min-h-screen justify-between" ]
         [ div []
             [ viewHeader
-            , if not model.engineInitialized || Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
-                div [ class "flex flex-col w-full items-center" ]
+            , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
+                div [ class "flex flex-col w-full h-full items-center" ]
                     [ viewError model.currentError
                     , div [ class "loading loading-lg text-primary mt-4" ] []
                     ]
@@ -289,10 +289,16 @@ view model =
                             [ lazy viewCategoryQuestions model
                             ]
                         , lazy viewError model.currentError
-                        , div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
-                            [ lazy viewResult model
-                            , lazy viewGraph model
-                            ]
+                        , if not model.engineInitialized then
+                            div [ class "flex flex-col w-full h-full items-center" ]
+                                [ div [ class "loading loading-lg text-primary mt-4" ] []
+                                ]
+
+                          else
+                            div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
+                                [ lazy viewResult model
+                                , lazy viewGraph model
+                                ]
                         ]
                     ]
             ]
@@ -384,9 +390,10 @@ viewFooter =
                     ]
                     [ text "Code source du site" ]
                 ]
-            , a [ class "w-24", href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
-                [ img [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr", alt "Ecoindex Badge" ] []
-                ]
+
+            -- , a [ class "w-24", href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
+            --     [ img [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr", alt "Ecoindex Badge" ] []
+            --     ]
             ]
         , footer [ class "footer p-4 bg-red-50 text-base-content border-t border-base-200" ]
             [ div []

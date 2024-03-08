@@ -204,6 +204,7 @@ type Msg
     | NewEncodedSituation String
     | ExportSituation
     | ResetSituation
+    | SetPersonaSituation P.Situation
     | EngineInitialized
     | NoOp
 
@@ -272,6 +273,13 @@ update msg model =
 
                 Err _ ->
                     ( { model | currentError = Just UnvalidSituationFile }, Cmd.none )
+
+        SetPersonaSituation personaSituation ->
+            ( { model | situation = personaSituation }
+            , personaSituation
+                |> P.encodeSituation
+                |> Effect.setSituation
+            )
 
         NoOp ->
             ( model, Cmd.none )
@@ -386,6 +394,7 @@ viewPersona : Pers.Persona -> Html Msg
 viewPersona persona =
     button
         [ class "btn btn-sm mx-2"
+        , onClick (SetPersonaSituation persona.situation)
         ]
         [ text persona.titre ]
 

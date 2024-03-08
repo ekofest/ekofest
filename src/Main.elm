@@ -17,8 +17,10 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Decode
 import Json.Encode
 import Markdown
+import Personas as Pers
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
+import Svg.Attributes exposing (d)
 import Task
 import UI
 
@@ -67,6 +69,7 @@ type alias Model =
     , openedCategories : Dict P.RuleName Bool
     , currentError : Maybe AppError
     , currentTab : Maybe UI.Category
+    , personas : Pers.Personas
     }
 
 
@@ -89,50 +92,65 @@ emptyModel =
     , currentError = Nothing
     , currentTab = Nothing
     , openedCategories = Dict.empty
+    , personas = Dict.empty
     }
 
 
 type alias Flags =
     { rules : Json.Encode.Value
     , ui : Json.Encode.Value
+    , personas : Json.Encode.Value
     , situation : Json.Encode.Value
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
+    let
+        { decodedRules, decodedUI, decodedPersonas, decodedSituation } =
+            { decodedRules = Decode.decodeValue P.rawRulesDecoder flags.rules
+            , decodedUI = Decode.decodeValue UI.uiDecoder flags.ui
+            , decodedPersonas = Decode.decodeValue Pers.personasDecoder flags.personas
+            , decodedSituation = Decode.decodeValue P.situationDecoder flags.situation
+            }
+    in
     case
-        ( Decode.decodeValue P.rawRulesDecoder flags.rules
-        , Decode.decodeValue UI.uiDecoder flags.ui
-        , Decode.decodeValue P.situationDecoder flags.situation
-        )
+        decodedRules
     of
-        ( Ok rawRules, Ok ui, Ok situation ) ->
-            let
-                orderedCategories =
-                    UI.getOrderedCategories ui.categories
-            in
-            evaluate
-                { emptyModel
-                    | rawRules = rawRules
-                    , questions = ui.questions
-                    , resultRules = H.getResultRules rawRules
-                    , categories = ui.categories
-                    , situation = situation
-                    , orderedCategories = orderedCategories
-                    , allCategorieAndSubcategorieNames =
-                        UI.getAllCategoryAndSubCategoryNames ui.categories
-                    , currentTab = List.head orderedCategories
-                }
-
-        ( Err e, _, _ ) ->
+        Err e ->
             ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
-        ( _, Err e, _ ) ->
-            ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
+        Ok rawRules ->
+            case
+                ( decodedUI, decodedPersonas, decodedSituation )
+            of
+                ( Ok ui, Ok personas, Ok situation ) ->
+                    let
+                        orderedCategories =
+                            UI.getOrderedCategories ui.categories
+                    in
+                    evaluate
+                        { emptyModel
+                            | rawRules = rawRules
+                            , questions = ui.questions
+                            , resultRules = H.getResultRules rawRules
+                            , categories = ui.categories
+                            , situation = situation
+                            , orderedCategories = orderedCategories
+                            , allCategorieAndSubcategorieNames =
+                                UI.getAllCategoryAndSubCategoryNames ui.categories
+                            , currentTab = List.head orderedCategories
+                            , personas = personas
+                        }
 
-        ( _, _, Err e ) ->
-            ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
+                ( Err e, _, _ ) ->
+                    ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
+
+                ( _, Err e, _ ) ->
+                    ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
+
+                ( _, _, Err e ) ->
+                    ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
 
 {-| We try to evaluate only the rules that need to be updated:
@@ -278,6 +296,7 @@ view model =
     div [ class "flex flex-col min-h-screen justify-between" ]
         [ div []
             [ viewHeader
+            , viewPersonas model.personas
             , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
                 div [ class "flex flex-col w-full h-full items-center" ]
                     [ viewError model.currentError
@@ -344,6 +363,31 @@ viewHeader =
                 ]
             ]
         ]
+
+
+viewPersonas : Pers.Personas -> Html Msg
+viewPersonas personas =
+    div [ class "inline-flex items-center my-4 px-4 w-full" ]
+        [ div [ class "mr-4" ]
+            [ text "Je suis un:"
+            ]
+        , div [ class "inline-flex" ]
+            (personas
+                |> Dict.toList
+                |> List.map
+                    (\( _, persona ) ->
+                        viewPersona persona
+                    )
+            )
+        ]
+
+
+viewPersona : Pers.Persona -> Html Msg
+viewPersona persona =
+    button
+        [ class "btn btn-sm mx-2"
+        ]
+        [ text persona.titre ]
 
 
 viewFooter : Html Msg

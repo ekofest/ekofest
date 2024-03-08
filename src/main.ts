@@ -5,12 +5,12 @@ import EkofestEngine, {
     RuleName,
     Situation,
 } from "./EkofestEngine"
-import rules, { ui } from "publicodes-evenements"
+import rules, { personas, ui } from "publicodes-evenements"
 
 let situation = JSON.parse(localStorage.getItem("situation") ?? "{}")
 
 let app = Elm.Main.init({
-    flags: { rules, ui, situation },
+    flags: { rules, ui, personas, situation },
     node: document.getElementById("elm-app"),
 })
 

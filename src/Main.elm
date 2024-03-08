@@ -296,7 +296,7 @@ view model =
 
                           else
                             div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
-                                [ lazy viewResult model
+                                [ lazy viewResults model
                                 , lazy viewGraph model
                                 ]
                         ]
@@ -690,7 +690,7 @@ viewNumberInputOnlyPlaceHolder num newAnswer =
     input
         [ type_ "number"
         , class "input input-bordered"
-        , placeholder (H.formatFloatToFrenchLocale 1 num)
+        , placeholder (H.formatFloatToFrenchLocale (Max 1) num)
         , onInput newAnswer
         ]
         []
@@ -769,33 +769,65 @@ viewDisabledInput =
 -- Results
 
 
-viewResult : Model -> Html Msg
-viewResult model =
+viewResults : Model -> Html Msg
+viewResults model =
     div [ class "stats stats-vertical border w-full rounded-md bg-neutral border-base-200" ]
         (model.resultRules
             |> List.map
-                (\( name, rule ) ->
-                    div [ class "stat" ]
-                        [ div [ class "stat-title" ]
-                            [ text (H.getTitle model.rawRules name) ]
-                        , div [ class "flex items-baseline" ]
-                            [ div [ class "stat-value text-primary font-bold" ]
-                                [ viewEvaluation (Dict.get name model.evaluations) ]
-                            , div [ class "stat-desc text-primary ml-2 text-base font-semibold" ] [ viewUnit rule ]
-                            ]
-                        ]
+                (\( name, { unit } ) ->
+                    let
+                        title =
+                            H.getTitle model.rawRules name
+                    in
+                    case Dict.get name model.evaluations of
+                        Just { nodeValue } ->
+                            case nodeValue of
+                                P.Num value ->
+                                    if unit == Just "kgCO2e" || unit == Nothing then
+                                        viewResult title value
+
+                                    else
+                                        viewResultError title
+
+                                _ ->
+                                    viewResultError title
+
+                        _ ->
+                            viewResultError title
                 )
         )
 
 
-viewEvaluation : Maybe Evaluation -> Html Msg
-viewEvaluation eval =
-    case eval of
-        Just { nodeValue } ->
-            text (P.nodeValueToString nodeValue)
+viewResultError : String -> Html Msg
+viewResultError title =
+    div [ class "stat" ]
+        [ div [ class "stat-title" ]
+            [ text title ]
+        , div [ class "flex items-baseline" ]
+            [ div [ class "stat-value text-error" ]
+                [ Icons.circleSlash2 ]
+            , div [ class "stat-desc text-error text-xl ml-2" ]
+                [ text "une erreur est survenue" ]
+            ]
+        ]
 
-        Nothing ->
-            text ""
+
+viewResult : String -> Float -> Html Msg
+viewResult title value =
+    let
+        ( formatedValue, formatedUnit ) =
+            H.formatCarbonResult value
+    in
+    div [ class "stat" ]
+        [ div [ class "stat-title" ]
+            [ text title ]
+        , div [ class "flex items-baseline" ]
+            [ div [ class "stat-value text-primary" ]
+                [ text formatedValue ]
+            , div [ class "stat-desc text-primary ml-2 text-lg font-semibold" ]
+                [ text formatedUnit ]
+            ]
+        ]
 
 
 viewUnit : P.RawRule -> Html Msg
@@ -905,7 +937,7 @@ viewGraphStat title percent result isHidden =
             ]
         , div [ class "flex items-center" ]
             [ div [ class "flex justify-start min-w-24 items-baseline text-accent mr-2" ]
-                [ div [ class "stat-value font-semibold text-2xl" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                [ div [ class "stat-value text-2xl" ] [ text (H.formatFloatToFrenchLocale (Exact 0) (result / 1000)) ]
                 , div [ class "stats-desc ml-2" ] [ text " tCO2e" ]
                 ]
             , div [ class "flex-1" ]
@@ -956,7 +988,7 @@ viewSubCatGraphStat title percent result =
         , div [ class "flex items-center" ]
             [ div
                 [ class "flex justify-start min-w-20 items-baseline text-accent mr-2" ]
-                [ div [ class "stat-value font-semibold text-lg" ] [ text (H.formatFloatToFrenchLocale 0 (result / 1000)) ]
+                [ div [ class "stat-value text-lg" ] [ text (H.formatFloatToFrenchLocale (Exact 0) (result / 1000)) ]
                 , div [ class "stats-desc text-sm ml-1" ] [ text " tCO2e" ]
                 ]
             , progress [ class "progress progress-accent h-2", value (String.fromFloat percent), Html.Attributes.max "100" ] []

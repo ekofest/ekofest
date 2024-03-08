@@ -311,3 +311,59 @@ chevronLeft =
             ]
             []
         ]
+
+
+
+-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ban"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+
+
+ban : Html msg
+ban =
+    svg
+        [ viewBox "0 0 24 24"
+        , fill "none"
+        , class "inline-block w-5 h-5 stroke-current"
+        ]
+        [ Svg.circle
+            [ cx "12"
+            , cy "12"
+            , r "10"
+            , strokeWidth "2"
+            ]
+            []
+        , Svg.path
+            [ strokeLinecap "round"
+            , strokeLinejoin "round"
+            , strokeWidth "2"
+            , d "m4.9 4.9 14.2 14.2"
+            ]
+            []
+        ]
+
+
+
+-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-slash-2"><circle cx="12" cy="12" r="10"/><path d="M22 2 2 22"/></svg>
+
+
+circleSlash2 : Html msg
+circleSlash2 =
+    svg
+        [ viewBox "0 0 24 24"
+        , fill "none"
+        , class "inline-block w-5 h-5 stroke-current"
+        ]
+        [ Svg.circle
+            [ cx "12"
+            , cy "12"
+            , r "10"
+            , strokeWidth "2"
+            ]
+            []
+        , Svg.path
+            [ strokeLinecap "round"
+            , strokeLinejoin "round"
+            , strokeWidth "2"
+            , d "M22 2 2 22"
+            ]
+            []
+        ]

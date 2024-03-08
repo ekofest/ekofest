@@ -9,6 +9,11 @@ import Publicodes as P
 import Regex
 
 
+
+-- RESULT RULE HELPERS
+--  TODO: should be defined in ui.yaml?
+
+
 resultNamespace : P.RuleName
 resultNamespace =
     "resultats"
@@ -19,8 +24,6 @@ totalRuleName =
     "resultats . bilan total"
 
 
-{-| TODO: should be defined in ui.yaml?
--}
 getResultRules : P.RawRules -> List ( P.RuleName, P.RawRule )
 getResultRules rules =
     rules
@@ -38,6 +41,10 @@ getResultRules rules =
                     _ ->
                         Nothing
             )
+
+
+
+-- PUBLICODES HELPERS
 
 
 getQuestions : P.RawRules -> List String -> Dict String (List P.RuleName)
@@ -111,19 +118,72 @@ getOptionTitle rules contexte optionVal =
         |> Maybe.withDefault optionVal
 
 
-formatFloatToFrenchLocale : Int -> Float -> String
-formatFloatToFrenchLocale n =
-    format { frenchLocale | decimals = Exact n }
+
+-- FORMATTING HELPERS
+
+
+{-| Format a number to a "displayable" pair (formatedValue, formatedUnit).
+
+The number **is expected to be in kgCO2e**.
+
+    -- Format in french locale
+    formatCarbonResult (Just 1234) == ( "1 234", "kgCO2e" )
+
+    -- Convert to tCO2e when > 10000
+    formatCarbonResult (Just 34567) == ( "34,6", "tCO2e" )
+
+    -- Round to 1 decimal when < 1000
+    formatCarbonResult (Just 123.45) == ( "123,5", "kgCO2e" )
+
+    -- Round to 0 decimal when >= 1000 kgCO2e
+    formatCarbonResult (Just 1234.56) == ( "1 235", "kgCO2e" )
+
+    -- Round to 0 decimal when >= 1000 tCO2e
+    formatCarbonResult (Just 340000.56) == ( "340", "tCO2e" )
+
+-}
+formatCarbonResult : Float -> ( String, String )
+formatCarbonResult number =
+    let
+        formatWithPrecision convertedValue =
+            let
+                precision =
+                    if convertedValue < 1000 then
+                        Max 1
+
+                    else
+                        Max 0
+            in
+            formatFloatToFrenchLocale precision convertedValue
+    in
+    if number < 10000 then
+        ( formatWithPrecision number, "kgCO2e" )
+
+    else
+        ( formatWithPrecision (number / 1000), "tCO2e" )
 
 
 formatPercent : Float -> String
 formatPercent pct =
-    formatFloatToFrenchLocale 1 pct ++ " %"
+    formatFloatToFrenchLocale (Max 1) pct ++ " %"
+
+
+formatFloatToFrenchLocale : Decimals -> Float -> String
+formatFloatToFrenchLocale decimals =
+    format { frenchLocale | decimals = decimals }
+
+
+
+-- JSON DECODERS
 
 
 filesDecoder : Decoder (List File)
 filesDecoder =
     Decode.at [ "target", "files" ] (Decode.list File.decoder)
+
+
+
+-- LIST HELPERS
 
 
 {-| Drops elements from [list] until the next element satisfies [predicate].

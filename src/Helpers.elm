@@ -129,16 +129,16 @@ The number **is expected to be in kgCO2e**.
     -- Format in french locale
     formatCarbonResult (Just 1234) == ( "1 234", "kgCO2e" )
 
-    -- Convert to tCO2e when > 10000
-    formatCarbonResult (Just 34567) == ( "34,6", "tCO2e" )
-
-    -- Round to 1 decimal when < 1000
+    -- Round to 1 decimal when < 1000 kgCO2e
     formatCarbonResult (Just 123.45) == ( "123,5", "kgCO2e" )
 
     -- Round to 0 decimal when >= 1000 kgCO2e
     formatCarbonResult (Just 1234.56) == ( "1 235", "kgCO2e" )
 
-    -- Round to 0 decimal when >= 1000 tCO2e
+    -- Convert to tCO2e and round to 1 decimal when > 10000 kgCO2e
+    formatCarbonResult (Just 34567) == ( "34,6", "tCO2e" )
+
+    -- Convert to tCO2e and round to 0 decimal when >= 1000000 kgCO2e
     formatCarbonResult (Just 340000.56) == ( "340", "tCO2e" )
 
 -}

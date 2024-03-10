@@ -20,7 +20,6 @@ import Markdown
 import Personas as Pers
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
-import Svg.Attributes exposing (d)
 import Task
 import UI
 

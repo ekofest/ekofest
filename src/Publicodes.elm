@@ -6,7 +6,6 @@ import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Json.Decode as Decode exposing (Decoder, field, lazy, list, map, nullable, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
-import Svg exposing (desc)
 
 
 type alias RuleName =

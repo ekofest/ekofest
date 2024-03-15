@@ -17,18 +17,18 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Decode
 import Json.Encode
 import Markdown
-import Personas as Pers
+import Personas exposing (Personas)
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
 import Task
-import UI
+import UI exposing (UI)
 
 
 
 -- MAIN
 
 
-main : Program Flags Model Msg
+main : Program Json.Encode.Value Model Msg
 main =
     Browser.element
         { init = init
@@ -36,6 +36,31 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
+
+
+
+-- FLAGS
+--
+-- NOTE: Flags are used to pass data from outside the Elm runtime into the Elm
+-- program (i.e. from the main.ts file to the Elm app).
+--
+
+
+type alias Flags =
+    { rules : P.RawRules
+    , ui : UI
+    , personas : Personas
+    , situation : P.Situation
+    }
+
+
+flagsDecoder : Decode.Decoder Flags
+flagsDecoder =
+    Decode.succeed Flags
+        |> Decode.required "rules" P.rawRulesDecoder
+        |> Decode.required "ui" UI.uiDecoder
+        |> Decode.required "personas" Personas.personasDecoder
+        |> Decode.required "situation" P.situationDecoder
 
 
 
@@ -68,7 +93,7 @@ type alias Model =
     , openedCategories : Dict P.RuleName Bool
     , currentError : Maybe AppError
     , currentTab : Maybe UI.Category
-    , personas : Pers.Personas
+    , personas : Personas
     }
 
 
@@ -95,61 +120,30 @@ emptyModel =
     }
 
 
-type alias Flags =
-    { rules : Json.Encode.Value
-    , ui : Json.Encode.Value
-    , personas : Json.Encode.Value
-    , situation : Json.Encode.Value
-    }
-
-
-init : Flags -> ( Model, Cmd Msg )
+init : Json.Encode.Value -> ( Model, Cmd Msg )
 init flags =
-    let
-        { decodedRules, decodedUI, decodedPersonas, decodedSituation } =
-            { decodedRules = Decode.decodeValue P.rawRulesDecoder flags.rules
-            , decodedUI = Decode.decodeValue UI.uiDecoder flags.ui
-            , decodedPersonas = Decode.decodeValue Pers.personasDecoder flags.personas
-            , decodedSituation = Decode.decodeValue P.situationDecoder flags.situation
-            }
-    in
-    case
-        decodedRules
-    of
+    case Decode.decodeValue flagsDecoder flags of
+        Ok { rules, ui, personas, situation } ->
+            let
+                orderedCategories =
+                    UI.getOrderedCategories ui.categories
+            in
+            evaluate
+                { emptyModel
+                    | rawRules = rules
+                    , questions = ui.questions
+                    , resultRules = H.getResultRules rules
+                    , categories = ui.categories
+                    , situation = situation
+                    , orderedCategories = orderedCategories
+                    , allCategorieAndSubcategorieNames =
+                        UI.getAllCategoryAndSubCategoryNames ui.categories
+                    , currentTab = List.head orderedCategories
+                    , personas = personas
+                }
+
         Err e ->
             ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
-
-        Ok rawRules ->
-            case
-                ( decodedUI, decodedPersonas, decodedSituation )
-            of
-                ( Ok ui, Ok personas, Ok situation ) ->
-                    let
-                        orderedCategories =
-                            UI.getOrderedCategories ui.categories
-                    in
-                    evaluate
-                        { emptyModel
-                            | rawRules = rawRules
-                            , questions = ui.questions
-                            , resultRules = H.getResultRules rawRules
-                            , categories = ui.categories
-                            , situation = situation
-                            , orderedCategories = orderedCategories
-                            , allCategorieAndSubcategorieNames =
-                                UI.getAllCategoryAndSubCategoryNames ui.categories
-                            , currentTab = List.head orderedCategories
-                            , personas = personas
-                        }
-
-                ( Err e, _, _ ) ->
-                    ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
-
-                ( _, Err e, _ ) ->
-                    ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
-
-                ( _, _, Err e ) ->
-                    ( { emptyModel | currentError = Just (DecodeError e) }, Cmd.none )
 
 
 {-| We try to evaluate only the rules that need to be updated:
@@ -372,7 +366,7 @@ viewHeader =
         ]
 
 
-viewPersonas : Pers.Personas -> Html Msg
+viewPersonas : Personas -> Html Msg
 viewPersonas personas =
     div [ class "inline-flex items-center my-4 px-4 w-full" ]
         [ div [ class "mr-4" ]
@@ -389,7 +383,7 @@ viewPersonas personas =
         ]
 
 
-viewPersona : Pers.Persona -> Html Msg
+viewPersona : Personas.Persona -> Html Msg
 viewPersona persona =
     button
         [ class "btn btn-sm mx-2"

@@ -13,7 +13,7 @@
         "deploy": "gh-pages -d build"
     },
     "dependencies": {
-        "publicodes": "^1.0.1",
+        "publicodes": "^1.1.1",
         "publicodes-evenements": "^0.6.0-rc.2"
     },
     "devDependencies": {

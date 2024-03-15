@@ -1606,7 +1606,7 @@ publicodes-evenements@^0.6.0-rc.2:
   resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.6.0-rc.2.tgz#5460372ec4f9aa2eee5de0df208eb5d35e6149cd"
   integrity sha512-8X6cJorHyNSNxQc7tRkKgWbnG7dSIJksIvbMYNLotGDZ5AUZ6GMFWitssrq720SSvY8uuKD61+v1/otegswI9Q==
 
-publicodes@^1.0.1:
+publicodes@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/publicodes/-/publicodes-1.1.1.tgz#6bd283b3a0e7e41d5d3ab2454d639c27a46400e5"
   integrity sha512-PO5nwianBt3D3xfVgfb6thJ1WT/ZE44dw6PvdyK/yBZSi69kh03tc7TyBrkVZcfsC00kZTfnJFNiVvJSTySYCA==

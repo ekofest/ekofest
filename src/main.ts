@@ -21,6 +21,10 @@ const engine = await EkofestEngine.createAsync(rules, situation, app)
 
 app.ports.engineInitialized.send(null)
 
+app.ports.scrollTo.subscribe((x: number, y: number) => {
+    window.scrollTo(x, y)
+})
+
 app.ports.setSituation.subscribe((newSituation: Situation) => {
     engine.setSituation(newSituation)
     localStorage.setItem("situation", JSON.stringify(newSituation))

@@ -300,8 +300,10 @@ view model =
 
                           else
                             div [ class "flex flex-col p-4 lg:pl-4 lg:col-span-1 lg:pr-8" ]
-                                [ lazy viewResults model
-                                , lazy viewGraph model
+                                [ div [ class "lg:sticky lg:top-4" ]
+                                    [ lazy viewResults model
+                                    , lazy viewGraph model
+                                    ]
                                 ]
                         ]
                     ]

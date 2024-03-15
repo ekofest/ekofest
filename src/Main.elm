@@ -211,7 +211,11 @@ update msg model =
             evaluate model
 
         ChangeTab category ->
-            evaluate { model | currentTab = Just category }
+            let
+                ( newModel, cmd ) =
+                    evaluate { model | currentTab = Just category }
+            in
+            ( newModel, Cmd.batch [ Effect.scrollTo ( 0, 0 ), cmd ] )
 
         SetSubCategoryGraphStatus category status ->
             let

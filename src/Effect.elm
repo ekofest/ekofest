@@ -20,6 +20,11 @@ port setSituation : Json.Encode.Value -> Cmd msg
 port updateSituation : ( P.RuleName, Json.Encode.Value ) -> Cmd msg
 
 
+{-| window.scrollTo
+-}
+port scrollTo : ( Int, Int ) -> Cmd msg
+
+
 
 -- SUBSCRIPTIONS
 

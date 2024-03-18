@@ -6,29 +6,30 @@ export type RawRule = Omit<Rule, "nom"> | string | number
 export type Situation = Record<RuleName, PublicodeValue>
 
 export default class EkofestEngine extends Engine {
-    private elmApp: any
+    private elmApp: any | null
     private situation: Readonly<Situation>
 
-    constructor(rules: Record<RuleName, RawRule>, elmApp: any) {
+    constructor(rules: Record<RuleName, RawRule>) {
         super(rules)
-        this.elmApp = elmApp
+        this.elmApp = null
         this.situation = {}
     }
 
     public static createAsync(
         rules: Readonly<Record<RuleName, RawRule>>,
-        situation: Readonly<Situation>,
-        elmApp: any
+        situation: Readonly<Situation>
     ) {
         return new Promise<EkofestEngine>((resolve) => {
             const nbRules = Object.keys(rules).length
             console.time(`[publicodes:parsing] ${nbRules} rules`)
-            const engine = new EkofestEngine(rules, elmApp).setSituation(
-                situation
-            )
+            const engine = new EkofestEngine(rules).setSituation(situation)
             console.timeEnd(`[publicodes:parsing] ${nbRules} rules`)
             resolve(engine)
         })
+    }
+
+    setElmApp(elmApp: any) {
+        this.elmApp = elmApp
     }
 
     getSituation(): Situation {
@@ -43,7 +44,7 @@ export default class EkofestEngine extends Engine {
     ): this {
         const res = super.setSituation(situation, options)
         this.situation = situation as Situation
-        this.elmApp.ports.situationUpdated.send(null)
+        this.elmApp?.ports.situationUpdated.send(null)
         return res
     }
 
@@ -63,7 +64,7 @@ export default class EkofestEngine extends Engine {
                 },
             ]
         })
-        this.elmApp.ports.evaluatedRules.send(evaluatedRules)
+        this.elmApp?.ports.evaluatedRules.send(evaluatedRules)
         return evaluatedRules
     }
 }

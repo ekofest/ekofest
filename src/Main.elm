@@ -273,6 +273,13 @@ updateEvaluation ( name, encodedEvaluation ) model =
 -- VIEW
 
 
+viewRulePage : P.RuleName -> Html Msg
+viewRulePage rule =
+    node "publicodes-rule-page"
+        [ attribute "rule" rule ]
+        []
+
+
 view : Model -> Html Msg
 view model =
     div [ class "flex flex-col min-h-screen justify-between" ]
@@ -306,6 +313,7 @@ view model =
                                     ]
                                 ]
                         ]
+                    , div [] [ viewRulePage H.totalRuleName ]
                     ]
             ]
         , viewFooter

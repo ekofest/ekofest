@@ -14,16 +14,32 @@ let app = Elm.Main.init({
     node: document.getElementById("elm-app"),
 })
 
+/// Basic ports
+
+app.ports.scrollTo.subscribe((x: number, y: number) => {
+    window.scrollTo(x, y)
+})
+
+app.ports.showModal.subscribe((id: string) => {
+    const modal = document.getElementById(id)
+    // @ts-ignore
+    modal?.showModal()
+})
+
+app.ports.closeModal.subscribe((id: string) => {
+    const modal = document.getElementById(id)
+    // @ts-ignore
+    modal?.close()
+})
+
+/// Publicodes
+
 // NOTE(@EmileRolley): I encapsulate the engine in a promise to be able to
 // initialize it asynchronously. This is useful to avoid blocking the UI while
 // the engine is being initialized.
 const engine = await EkofestEngine.createAsync(rules, situation, app)
 
 app.ports.engineInitialized.send(null)
-
-app.ports.scrollTo.subscribe((x: number, y: number) => {
-    window.scrollTo(x, y)
-})
 
 app.ports.setSituation.subscribe((newSituation: Situation) => {
     engine.setSituation(newSituation)

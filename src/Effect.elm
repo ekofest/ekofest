@@ -25,6 +25,12 @@ port updateSituation : ( P.RuleName, Json.Encode.Value ) -> Cmd msg
 port scrollTo : ( Int, Int ) -> Cmd msg
 
 
+port showModal : String -> Cmd msg
+
+
+port closeModal : String -> Cmd msg
+
+
 
 -- SUBSCRIPTIONS
 

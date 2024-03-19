@@ -94,6 +94,8 @@ type alias Model =
     , currentError : Maybe AppError
     , currentTab : Maybe UI.Category
     , personas : Personas
+    , -- Used to show little ping on the personas button until the user opens the modal
+      alreadyOpenedPersonasModal : Bool
     }
 
 
@@ -117,6 +119,7 @@ emptyModel =
     , currentTab = Nothing
     , openedCategories = Dict.empty
     , personas = Dict.empty
+    , alreadyOpenedPersonasModal = False
     }
 
 
@@ -200,6 +203,8 @@ type Msg
     | SetPersonaSituation P.Situation
     | EngineInitialized
     | NoOp
+    | OpenPersonasModal
+    | ClosePersonasModal
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -269,10 +274,19 @@ update msg model =
 
         SetPersonaSituation personaSituation ->
             ( { model | situation = personaSituation }
-            , personaSituation
-                |> P.encodeSituation
-                |> Effect.setSituation
+            , Cmd.batch
+                [ Effect.closeModal "persona-modal"
+                , Effect.setSituation (P.encodeSituation personaSituation)
+                ]
             )
+
+        OpenPersonasModal ->
+            ( { model | alreadyOpenedPersonasModal = True }
+            , Effect.showModal "persona-modal"
+            )
+
+        ClosePersonasModal ->
+            ( model, Effect.closeModal "persona-modal" )
 
         NoOp ->
             ( model, Cmd.none )
@@ -296,8 +310,8 @@ view : Model -> Html Msg
 view model =
     div [ class "flex flex-col min-h-screen justify-between" ]
         [ div []
-            [ viewHeader
-            , viewPersonas model.personas
+            [ viewHeader model.alreadyOpenedPersonasModal
+            , viewModalPersonas model.personas
             , if Dict.isEmpty model.rawRules || Dict.isEmpty model.evaluations then
                 div [ class "flex flex-col w-full h-full items-center" ]
                     [ viewError model.currentError
@@ -332,24 +346,31 @@ view model =
         ]
 
 
-viewHeader : Html Msg
-viewHeader =
+viewHeader : Bool -> Html Msg
+viewHeader alreadyOpenedPersonasModal =
     let
         btnClass =
-            "join-item btn-sm bg-base-100 border border-base-200 hover:bg-base-200"
+            "join-item inline-flex items-center btn-sm bg-base-100 border border-base-200 hover:bg-base-200"
     in
     header []
-        [ div [ class "flex md:items-center sm:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
-            [ div [ class "flex items-center" ]
+        [ div [ class "flex items-center md:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
+            [ div [ class "flex flex-col items-center gap-4 mb-4 sm:mb-0 sm:items-center sm:justify-center sm:flex-row" ]
                 [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
-                , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
+                , span [ class "relative inline-flex" ]
+                    [ button [ class (btnClass ++ " rounded-md"), onClick OpenPersonasModal ]
+                        [ text "Commencer avec un profil d'évènement"
+                        ]
+                    , viewPing (not alreadyOpenedPersonasModal)
+                    ]
                 ]
-            , div [ class "join p-2 mb-4 sm:mb-0" ]
+            , div [ class "join my-4 md:my-0 md:mb-0 rounded-md" ]
                 [ button [ class btnClass, onClick ResetSituation ]
-                    [ span [ class "mr-2" ] [ Icons.refresh ], span [ class "invisible xsm:visible" ] [ text "Recommencer" ] ]
+                    [ span [ class "mx-2 xsm:mr-2" ] [ Icons.refresh ]
+                    , span [ class "invisible hidden xsm:visible xsm:block" ] [ text "Recommencer" ]
+                    ]
                 , button [ class btnClass, onClick ExportSituation ]
-                    [ span [ class "mr-2" ] [ Icons.download ]
-                    , span [ class "invisible xsm:visible" ] [ text "Télécharger" ]
+                    [ span [ class "mx-2 xsm:mr-2" ] [ Icons.download ]
+                    , span [ class "invisible hidden xsm:visible xsm:block" ] [ text "Télécharger" ]
                     ]
                 , button
                     [ class btnClass
@@ -358,9 +379,42 @@ viewHeader =
                     , accept ".json"
                     , onClick SelectFile
                     ]
-                    [ span [ class "mr-2" ] [ Icons.upload ]
-                    , span [ class "invisible xsm:visible" ] [ text "Importer" ]
+                    [ span [ class "mx-2 xsm:mr-2" ] [ Icons.upload ]
+                    , span [ class "invisible hidden xsm:visible xsm:block" ] [ text "Importer" ]
                     ]
+                ]
+            ]
+        ]
+
+
+viewPing : Bool -> Html Msg
+viewPing show =
+    if show then
+        span [ class "flex absolute h-3 w-3 top-0 right-0 -mt-1 -mr-1" ]
+            [ span [ class "animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" ] []
+            , span [ class "relative inline-flex rounded-full h-3 w-3 bg-accent" ] []
+            ]
+
+    else
+        span [] []
+
+
+{-| TODO: abstract this into a reusable component
+-}
+viewModalPersonas : Personas -> Html Msg
+viewModalPersonas personas =
+    node "dialog"
+        [ id "persona-modal", class "modal modal-bottom sm:modal-middle" ]
+        [ div [ class "modal-box rounded-md bg-neutral" ]
+            [ h3 [ class "text-xl pb-4 font-semibold" ]
+                [ text "Choississez le profil qui correspond le plus à votre évènement" ]
+            , viewPersonas personas
+            , div [ class "modal-action" ]
+                [ button
+                    [ class "btn-sm border border-base-200 hover:bg-base-200 rounded-md"
+                    , onClick ClosePersonasModal
+                    ]
+                    [ text "Fermer" ]
                 ]
             ]
         ]
@@ -368,28 +422,18 @@ viewHeader =
 
 viewPersonas : Personas -> Html Msg
 viewPersonas personas =
-    div [ class "inline-flex items-center my-4 px-4 w-full" ]
-        [ div [ class "mr-4" ]
-            [ text "Je suis un:"
-            ]
-        , div [ class "inline-flex" ]
-            (personas
-                |> Dict.toList
-                |> List.map
-                    (\( _, persona ) ->
-                        viewPersona persona
-                    )
-            )
-        ]
-
-
-viewPersona : Personas.Persona -> Html Msg
-viewPersona persona =
-    button
-        [ class "btn btn-sm mx-2"
-        , onClick (SetPersonaSituation persona.situation)
-        ]
-        [ text persona.titre ]
+    div [ class "grid grid-cols-2 gap-4" ]
+        (personas
+            |> Dict.toList
+            |> List.map
+                (\( _, persona ) ->
+                    button
+                        [ class "btn text-md font-semibold bg-primary/5 border border-primary/20 hover:bg-primary/20 hover:border-primary/20 rounded-md p-4 flex items-center justify-center w-full h-24"
+                        , onClick (SetPersonaSituation persona.situation)
+                        ]
+                        [ text persona.titre ]
+                )
+        )
 
 
 viewFooter : Html Msg
@@ -587,7 +631,7 @@ viewCategoriesNavigation orderedCategories category =
         [ case maybePrevCategory of
             Just prevCategory ->
                 button
-                    [ class "btn btn-sm btn-primary btn-outline self-end"
+                    [ class "btn btn-sm btn-primary btn-outline self-end rounded-md"
                     , onClick (ChangeTab prevCategory)
                     ]
                     [ Icons.chevronLeft, text (String.toUpper prevCategory) ]
@@ -597,7 +641,7 @@ viewCategoriesNavigation orderedCategories category =
         , case maybeNextCategory of
             Just nextCategory ->
                 button
-                    [ class "btn btn-sm btn-primary self-end text-white"
+                    [ class "btn btn-sm btn-primary self-end text-white rounded-md"
                     , onClick (ChangeTab nextCategory)
                     ]
                     [ text (String.toUpper nextCategory), Icons.chevronRight ]
@@ -619,7 +663,7 @@ viewMarkdownCategoryDescription rawRules currentCategory =
             text ""
 
         Just desc ->
-            div [ class "px-6 py-3 mb-6 border-b rounded-t-md bg-orange-50" ]
+            div [ class "px-6 py-3 mb-6 border-b rounded-t-md bg-primary/5" ]
                 [ div [ class "prose max-w-full" ] <|
                     Markdown.toHtml Nothing desc
                 ]

@@ -273,13 +273,6 @@ updateEvaluation ( name, encodedEvaluation ) model =
 -- VIEW
 
 
-viewRulePage : P.RuleName -> Html Msg
-viewRulePage rule =
-    node "publicodes-rule-page"
-        [ attribute "rule" rule ]
-        []
-
-
 view : Model -> Html Msg
 view model =
     div [ class "flex flex-col min-h-screen justify-between" ]
@@ -313,11 +306,20 @@ view model =
                                     ]
                                 ]
                         ]
-                    , div [] [ viewRulePage H.totalRuleName ]
+                    , -- Element used as the React root for the rule page
+                      div [ id "publicodes-rule-page-container" ] []
+                    , viewRulePage H.totalRuleName
                     ]
             ]
         , viewFooter
         ]
+
+
+viewRulePage : P.RuleName -> Html Msg
+viewRulePage rule =
+    node "publicodes-rule-page"
+        [ attribute "rule" rule ]
+        []
 
 
 viewHeader : Html Msg

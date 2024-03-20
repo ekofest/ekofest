@@ -7,15 +7,16 @@ export function defineCustomElementWith(engine: EkofestEngine) {
     customElements.define(
         "publicodes-rule-page",
         class extends HTMLElement {
-            shadow: ShadowRoot
             reactRoot: Root
             engine: EkofestEngine
 
             constructor() {
                 super()
-                // Encapsulates the component in a shadow DOM to avoid style conflicts
-                this.shadow = this.attachShadow({ mode: "open" })
-                this.reactRoot = createRoot(this.shadow)
+                this.reactRoot = createRoot(
+                    document.getElementById(
+                        "publicodes-rule-page-container"
+                    ) as HTMLElement
+                )
                 this.engine = engine
                 this.renderElement()
             }
@@ -32,14 +33,14 @@ export function defineCustomElementWith(engine: EkofestEngine) {
                 const rulePath = this.getAttribute("rule") ?? ""
                 this.reactRoot.render(
                     <RulePage
-                        documentationPath={""}
-                        rulePath={rulePath}
                         engine={this.engine}
+                        rulePath={rulePath}
+                        documentationPath={""}
                         language={"fr"}
                         renderers={{
-                            Link: ({ to, children }) => {
-                                return <a href={to}>{children}</a>
-                            },
+                            Link: ({ to, children }) => (
+                                <a href={to}>{children}</a>
+                            ),
                         }}
                     />
                 )

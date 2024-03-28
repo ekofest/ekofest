@@ -214,14 +214,17 @@ update msg model =
         EngineInitialized ->
             case model.page of
                 Home m ->
+                    -- NOTE: currently, we only evalute rules in the home page,
+                    -- because the evaluation is done in the Home module.
+                    -- However, me may want to evaluate rules in the other pages as well
+                    -- (e.g. to display the result of a rule in the documentation page).
+                    -- To do so, we would need to move the evaluation logic to the Main module.
                     let
-                        ( newModel, cmd ) =
+                        ( newHomeModel, homeCmd ) =
                             S.updateEngineInitialized True m
                                 |> Home.update Home.Evaluate
                     in
-                    ( { model | page = Home newModel }
-                    , Cmd.map HomeMsg cmd
-                    )
+                    gotoHome model ( newHomeModel, homeCmd )
 
                 Documentation m ->
                     ( { model | page = Documentation (S.updateEngineInitialized True m) }
@@ -238,7 +241,6 @@ update msg model =
 
         ExportSituation ->
             let
-                -- TODO: could it be simplified by changing what is stored and where?
                 session =
                     exit model
             in
@@ -291,7 +293,7 @@ updateSituation situation model =
                     { model | page = NotFound { s | situation = s.situation } }
     in
     ( newModel
-    , P.encodeSituation situation |> Effect.setSituation
+    , Effect.setSituation (P.encodeSituation situation)
     )
 
 

@@ -18,6 +18,7 @@ import Json.Decode.Pipeline as Decode
 import Json.Encode
 import Page.Documentation as Documentation
 import Page.Home as Home
+import Page.NotFound as NotFound
 import Page.Template as Template
 import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
@@ -85,11 +86,6 @@ type Page
     | NotFound S.Data
 
 
-type AppError
-    = DecodeError Decode.Error
-    | UnvalidSituationFile
-
-
 type alias Flags =
     { rules : Json.Encode.Value
     , ui : Json.Encode.Value
@@ -99,6 +95,14 @@ type alias Flags =
 
 init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
+    let
+        notFoundWithDecodeErr e =
+            let
+                emptySession =
+                    S.empty
+            in
+            NotFound { emptySession | currentErr = Just (S.DecodeError e) }
+    in
     router url <|
         case
             ( Decode.decodeValue P.rawRulesDecoder flags.rules
@@ -113,16 +117,14 @@ init flags url key =
                 in
                 Model key (NotFound session)
 
-            -- ( Err e, _, _ ) ->
-            --     Session.empty
-            --
-            -- ( _, Err e, _ ) ->
-            --     Session.empty
-            -- ( _, _, Err e ) ->
-            --     Session.empty
-            -- FIXME: handle errors
-            _ ->
-                Model key (NotFound S.empty)
+            ( Err e, _, _ ) ->
+                Model key (notFoundWithDecodeErr e)
+
+            ( _, Err e, _ ) ->
+                Model key (notFoundWithDecodeErr e)
+
+            ( _, _, Err e ) ->
+                Model key (notFoundWithDecodeErr e)
 
 
 gotoHome : Model -> ( Home.Model, Cmd Home.Msg ) -> ( Model, Cmd Msg )
@@ -160,8 +162,6 @@ exit model =
 -- ROUTING
 
 
-{-| TODO: get the current page instead of the current session data
--}
 router : Url.Url -> Model -> ( Model, Cmd Msg )
 router url model =
     let
@@ -177,10 +177,12 @@ router url model =
                 |> gotoHome model
 
         [ "documentation" ] ->
+            -- NOTE: we may want to redirect to the corresponding rule to have a correct URL
             Documentation.init session H.totalRuleName
                 |> gotoDocumentation model
 
         "documentation" :: rulePath ->
+            -- TODO: handle the case where the rule does not exist
             String.join "/" rulePath
                 |> P.decodeRuleName
                 |> Documentation.init session
@@ -216,18 +218,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
-
-        UrlChanged url ->
-            router url model
-
-        UrlRequested (Browser.Internal url) ->
-            ( model, Nav.pushUrl model.key (Url.toString url) )
-
-        UrlRequested (Browser.External href) ->
-            ( model, Nav.load href )
-
         HomeMsg homeMsg ->
             case model.page of
                 Home m ->
@@ -235,14 +225,18 @@ update msg model =
                         |> gotoHome model
 
                 _ ->
-                    -- TODO: add an error, this should not happen
                     ( model, Cmd.none )
 
-        DocumentationMsg _ ->
-            Debug.todo "branch 'DocumentationMsg _' not implemented"
+        DocumentationMsg docMsg ->
+            case model.page of
+                Documentation m ->
+                    Documentation.update docMsg m
+                        |> gotoDocumentation model
+
+                _ ->
+                    ( model, Cmd.none )
 
         EngineInitialized ->
-            -- TODO: to refactor
             case model.page of
                 Home m ->
                     let
@@ -294,6 +288,18 @@ update msg model =
                 Err _ ->
                     ( model, Cmd.none )
 
+        UrlRequested (Browser.Internal url) ->
+            ( model, Nav.pushUrl model.key (Url.toString url) )
+
+        UrlRequested (Browser.External href) ->
+            ( model, Nav.load href )
+
+        UrlChanged url ->
+            router url model
+
+        NoOp ->
+            ( model, Cmd.none )
+
 
 updateSituation : P.Situation -> Model -> ( Model, Cmd Msg )
 updateSituation situation model =
@@ -321,9 +327,13 @@ updateSituation situation model =
 view : Model -> Document Msg
 view model =
     let
+        session =
+            exit model
+
         baseConfig =
             { title = ""
             , content = text ""
+            , session = session
             , resetSituation = ResetSituation
             , exportSituation = ExportSituation
             , importSituation = SelectSituationFile
@@ -338,10 +348,18 @@ view model =
                 }
 
         Documentation m ->
-            Debug.todo "branch 'Documentation m' not implemented"
+            Template.view
+                { baseConfig
+                    | title = "Documentation" ++ " - " ++ H.getTitle session.rawRules m.rule
+                    , content = Html.map DocumentationMsg (Documentation.view m)
+                }
 
-        NotFound session ->
-            Debug.todo "branch 'NotFound' not implemented"
+        NotFound _ ->
+            Template.view
+                { baseConfig
+                    | title = "404"
+                    , content = NotFound.view
+                }
 
 
 

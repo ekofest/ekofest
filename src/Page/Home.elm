@@ -187,10 +187,9 @@ view model =
             model.session
     in
     div []
-        [ if Dict.isEmpty session.rawRules || Dict.isEmpty model.evaluations then
+        [ if Dict.isEmpty model.evaluations then
             div [ class "flex flex-col w-full h-full items-center" ]
-                [ S.viewError session.currentErr
-                , div [ class "loading loading-lg text-primary mt-4" ] []
+                [ div [ class "loading loading-lg text-primary mt-4" ] []
                 ]
 
           else
@@ -201,7 +200,6 @@ view model =
                     [ div [ class "p-4 lg:pl-8 lg:pr-4 lg:col-span-2" ]
                         [ lazy viewCategoryQuestions model
                         ]
-                    , S.viewError session.currentErr
                     , if not session.engineInitialized then
                         div [ class "flex flex-col w-full h-full items-center" ]
                             [ div [ class "loading loading-lg text-primary mt-4" ] []

@@ -1,9 +1,11 @@
 module Page.Template exposing (Config, view)
 
 import Browser exposing (Document)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Session as S
 import Views.Icons as Icons
 import Views.Link as Link
 
@@ -11,6 +13,7 @@ import Views.Link as Link
 type alias Config msg =
     { title : String
     , content : Html msg
+    , session : S.Data
     , resetSituation : msg
     , exportSituation : msg
     , importSituation : msg
@@ -22,7 +25,16 @@ view config =
     { title = config.title ++ " | Ekofest"
     , body =
         [ viewHeader config
-        , main_ [] [ config.content ]
+        , main_ []
+            [ if Dict.isEmpty config.session.rawRules then
+                div [ class "flex flex-col w-full h-full items-center" ]
+                    [ S.viewError config.session.currentErr
+                    , div [ class "loading loading-lg text-primary mt-4" ] []
+                    ]
+
+              else
+                config.content
+            ]
         , viewFooter
         ]
     }
@@ -37,7 +49,9 @@ viewHeader { resetSituation, exportSituation, importSituation } =
     header []
         [ div [ class "flex md:items-center sm:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex items-center" ]
-                [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
+                [ a [ href "/" ]
+                    [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
+                    ]
                 , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
             , div [ class "join p-2 mb-4 sm:mb-0" ]
@@ -92,7 +106,7 @@ viewFooter =
                 ]
             , nav []
                 [ h6 [ class "footer-title" ] [ text "Liens utiles" ]
-                , Link.external [ href "https://ekofest.github.io/publicodes-evenements" ]
+                , Link.internal [ href "/documentation" ]
                     [ text "Documentation du modèle" ]
                 , Link.external [ href "https://github.com/ekofest/publicodes-evenements" ]
                     [ text "Code source du modèle" ]

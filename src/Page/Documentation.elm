@@ -20,17 +20,15 @@ init session rule =
     )
 
 
-{-| TODO: could it be removed?
--}
 type Msg
     = NoOp
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NoOp ->
-            model
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg

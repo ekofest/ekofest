@@ -35,15 +35,22 @@ type alias Questions =
     Dict Category (List (List P.RuleName))
 
 
-type alias UI =
+type alias Data =
     { categories : Categories
     , questions : Questions
     }
 
 
-uiDecoder : Decoder UI
+empty : Data
+empty =
+    { categories = Dict.empty
+    , questions = Dict.empty
+    }
+
+
+uiDecoder : Decoder Data
 uiDecoder =
-    Decode.succeed UI
+    Decode.succeed Data
         |> required "categories" (dict decodeCategoryInfos)
         |> required "questions" (dict (list (list string)))
 

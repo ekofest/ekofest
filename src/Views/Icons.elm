@@ -375,3 +375,17 @@ externalLink =
         , Svg.path [ strokeLinecap "round", strokeLinejoin "round", strokeWidth "2", d "M10 14 21 3" ] []
         , Svg.path [ strokeLinecap "round", strokeLinejoin "round", strokeWidth "2", d "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" ] []
         ]
+
+
+{-| <svg xmlns="<http://www.w3.org/2000/svg"> width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open-text"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/><path d="M6 8h2"/><path d="M6 12h2"/><path d="M16 8h2"/><path d="M16 12h2"/></svg>
+-}
+bookOpenText : Html msg
+bookOpenText =
+    svg [ viewBox "0 0 24 24", fill "none", class "inline-block w-5 h-5 stroke-current" ]
+        [ Svg.path [ strokeLinecap "round", strokeLinejoin "round", strokeWidth "2", d "M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" ] []
+        , Svg.path [ strokeLinecap "round", strokeLinejoin "round", strokeWidth "2", d "M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" ] []
+        , Svg.path [ strokeLinecap "round", strokeLinejoin "round", strokeWidth "2", d "M6 8h2" ] []
+        , Svg.path [ strokeLinecap "round", strokeLinejoin "round", strokeWidth "2", d "M6 12h2" ] []
+        , Svg.path [ strokeLinecap "round", strokeLinejoin "round", strokeWidth "2", d "M16 8h2" ] []
+        , Svg.path [ strokeLinecap "round", strokeLinejoin "round", strokeWidth "2", d "M16 12h2" ] []
+        ]

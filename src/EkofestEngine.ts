@@ -32,6 +32,10 @@ export default class EkofestEngine extends Engine {
         this.elmApp = elmApp
     }
 
+    getElmApp() {
+        return this.elmApp
+    }
+
     getSituation(): Situation {
         return this.situation
     }

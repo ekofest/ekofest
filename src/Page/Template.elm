@@ -16,6 +16,10 @@ type alias Config msg =
     { title : String
     , content : Html msg
     , session : S.Data
+
+    -- Show an empty div to mount React components and render custom elements.
+    -- Currenlty, this is used to render the Publicodes documentation.
+    , showReactRoot : Bool
     , resetSituation : msg
     , exportSituation : msg
     , importSituation : msg

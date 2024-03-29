@@ -163,7 +163,7 @@ type Msg
       -- Navigation
     | UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
-      -- Global Msg
+    | ReactLinkClicked String
     | EngineInitialized
     | NewEncodedSituation String
       -- Situation buttons (reset, import, export)
@@ -252,6 +252,9 @@ update msg model =
                 Err _ ->
                     ( model, Cmd.none )
 
+        ReactLinkClicked url ->
+            ( model, Nav.pushUrl model.key url )
+
         UrlRequested (Browser.Internal url) ->
             ( model, Nav.pushUrl model.key (Url.toString url) )
 
@@ -325,9 +328,7 @@ view model =
             { title = ""
             , content = text ""
             , session = session
-
-            -- NOTE: this might be a sign that all the "global" update must be done
-            -- directly in the Template module.
+            , showReactRoot = False
             , resetSituation = ResetSituation
             , exportSituation = ExportSituation
             , importSituation = SelectSituationFile
@@ -349,6 +350,7 @@ view model =
                 { baseConfig
                     | title = "Documentation" ++ " - " ++ H.getTitle session.rawRules m.rule
                     , content = Html.map DocumentationMsg (Documentation.view m)
+                    , showReactRoot = True
                 }
 
         NotFound _ ->
@@ -367,5 +369,6 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ Effect.engineInitialized (\_ -> EngineInitialized)
+        , Effect.reactLinkClicked ReactLinkClicked
         , Sub.map HomeMsg Home.subscriptions
         ]

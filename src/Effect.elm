@@ -61,3 +61,8 @@ port situationUpdated : (() -> msg) -> Sub msg
 
 
 port engineInitialized : (() -> msg) -> Sub msg
+
+
+{-| A link was clicked in a react component
+-}
+port reactLinkClicked : (String -> msg) -> Sub msg

@@ -3,6 +3,8 @@ import React from "react"
 import { Root, createRoot } from "react-dom/client"
 import EkofestEngine from "./EkofestEngine"
 
+const reactRootId = "react-root"
+
 export function defineCustomElementWith(engine: EkofestEngine) {
     customElements.define(
         "publicodes-rule-page",
@@ -13,9 +15,7 @@ export function defineCustomElementWith(engine: EkofestEngine) {
             constructor() {
                 super()
                 this.reactRoot = createRoot(
-                    document.getElementById(
-                        "publicodes-rule-page-container"
-                    ) as HTMLElement
+                    document.getElementById(reactRootId) as HTMLElement
                 )
                 this.engine = engine
                 this.renderElement()
@@ -31,15 +31,32 @@ export function defineCustomElementWith(engine: EkofestEngine) {
 
             renderElement() {
                 const rulePath = this.getAttribute("rule") ?? ""
+                const documentationPath =
+                    this.getAttribute("documentationPath") ?? ""
+
+                if (!rulePath || !documentationPath) {
+                    return null
+                }
+
                 this.reactRoot.render(
                     <RulePage
                         engine={this.engine}
                         rulePath={rulePath}
-                        documentationPath={""}
+                        documentationPath={documentationPath}
                         language={"fr"}
+                        searchBar={true}
                         renderers={{
                             Link: ({ to, children }) => (
-                                <a href={to}>{children}</a>
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        this.engine
+                                            .getElmApp()
+                                            .ports.reactLinkClicked.send(to)
+                                    }}
+                                >
+                                    {children}
+                                </button>
                             ),
                         }}
                     />
@@ -47,7 +64,7 @@ export function defineCustomElementWith(engine: EkofestEngine) {
             }
 
             static get observedAttributes() {
-                return ["rule"]
+                return ["rule", "documentationPath"]
             }
         }
     )

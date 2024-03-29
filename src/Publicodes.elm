@@ -6,7 +6,6 @@ import FormatNumber.Locales exposing (Decimals(..), frenchLocale)
 import Json.Decode as Decode exposing (Decoder, field, lazy, list, map, nullable, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
-import Svg exposing (desc)
 
 
 type alias RuleName =
@@ -238,3 +237,14 @@ namespace ruleName =
     splitRuleName ruleName
         |> List.head
         |> Maybe.withDefault ruleName
+
+
+{-| Decode a rule name from a URL path. Elm implementation of `publicodes/utils.ts#decodeRuleName`
+-}
+decodeRuleName : String -> RuleName
+decodeRuleName urlPath =
+    urlPath
+        |> String.replace "/" " . "
+        |> String.replace "-" " "
+        |> --NOTE: it's [\u{2011}] but when formatted it's became [‑] (which is different from [-])
+           String.replace "‑" "-"

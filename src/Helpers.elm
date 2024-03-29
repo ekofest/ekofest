@@ -86,6 +86,9 @@ isInCategory category ruleName =
         |> (\namespace -> namespace == category)
 
 
+{-| Get the title of a rule from its name.
+If the rule doesn't have a title, the name is returned.
+-}
 getTitle : P.RawRules -> P.RuleName -> String
 getTitle rules name =
     case Dict.get name rules of

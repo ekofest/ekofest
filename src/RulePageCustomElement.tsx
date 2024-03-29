@@ -1,7 +1,8 @@
-import { RulePage } from "@publicodes/react-ui"
-import React from "react"
+import React, { Suspense } from "react"
 import { Root, createRoot } from "react-dom/client"
 import EkofestEngine from "./EkofestEngine"
+
+const RulePage = React.lazy(() => import("./RulePage.tsx"))
 
 const reactRootId = "react-root"
 
@@ -39,27 +40,29 @@ export function defineCustomElementWith(engine: EkofestEngine) {
                 }
 
                 this.reactRoot.render(
-                    <RulePage
-                        engine={this.engine}
-                        rulePath={rulePath}
-                        documentationPath={documentationPath}
-                        language={"fr"}
-                        searchBar={true}
-                        renderers={{
-                            Link: ({ to, children }) => (
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        this.engine
-                                            .getElmApp()
-                                            .ports.reactLinkClicked.send(to)
-                                    }}
-                                >
-                                    {children}
-                                </button>
-                            ),
-                        }}
-                    />
+                    <Suspense fallback={<div>Loading...</div>}>
+                        <RulePage
+                            engine={this.engine}
+                            rulePath={rulePath}
+                            documentationPath={documentationPath}
+                            language={"fr"}
+                            searchBar={true}
+                            renderers={{
+                                Link: ({ to, children }) => (
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            this.engine
+                                                .getElmApp()
+                                                .ports.reactLinkClicked.send(to)
+                                        }}
+                                    >
+                                        {children}
+                                    </button>
+                                ),
+                            }}
+                        />
+                    </Suspense>
                 )
             }
 

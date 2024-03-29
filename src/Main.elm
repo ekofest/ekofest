@@ -24,7 +24,6 @@ import Platform.Cmd as Cmd
 import Publicodes as P exposing (Mecanism(..), NodeValue(..))
 import Session as S
 import Task
-import UI
 import Url
 import Url.Parser exposing (Parser)
 
@@ -46,31 +45,6 @@ main =
 
 
 
--- FLAGS
---
--- NOTE: Flags are used to pass data from outside the Elm runtime into the Elm
--- program (i.e. from the main.ts file to the Elm app).
---
-
-
-type alias Flags =
-    { rules : P.RawRules
-    , ui : UI
-    , personas : Personas
-    , situation : P.Situation
-    }
-
-
-flagsDecoder : Decode.Decoder Flags
-flagsDecoder =
-    Decode.succeed Flags
-        |> Decode.required "rules" P.rawRulesDecoder
-        |> Decode.required "ui" UI.uiDecoder
-        |> Decode.required "personas" Personas.personasDecoder
-        |> Decode.required "situation" P.situationDecoder
-
-
-
 -- MODEL
 
 
@@ -86,45 +60,25 @@ type Page
     | NotFound S.Data
 
 
-type alias Flags =
-    { rules : Json.Encode.Value
-    , ui : Json.Encode.Value
-    , situation : Json.Encode.Value
-    }
-
-
-init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url key =
-    let
-        notFoundWithDecodeErr e =
-            let
-                emptySession =
-                    S.empty
-            in
-            NotFound { emptySession | currentErr = Just (S.DecodeError e) }
-    in
+init : Json.Encode.Value -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init encodedFlags url key =
     router url <|
         case
-            ( Decode.decodeValue P.rawRulesDecoder flags.rules
-            , Decode.decodeValue UI.uiDecoder flags.ui
-            , Decode.decodeValue P.situationDecoder flags.situation
-            )
+            Decode.decodeValue S.flagsDecoder encodedFlags
         of
-            ( Ok rawRules, Ok ui, Ok situation ) ->
+            Ok flags ->
                 let
                     session =
-                        S.init rawRules situation ui
+                        S.init flags
                 in
                 Model key (NotFound session)
 
-            ( Err e, _, _ ) ->
-                Model key (notFoundWithDecodeErr e)
-
-            ( _, Err e, _ ) ->
-                Model key (notFoundWithDecodeErr e)
-
-            ( _, _, Err e ) ->
-                Model key (notFoundWithDecodeErr e)
+            Err e ->
+                let
+                    emptySession =
+                        S.empty
+                in
+                Model key (NotFound { emptySession | currentErr = Just (S.DecodeError e) })
 
 
 gotoHome : Model -> ( Home.Model, Cmd Home.Msg ) -> ( Model, Cmd Msg )
@@ -203,16 +157,24 @@ route parser handler =
 
 type Msg
     = NoOp
+      -- Page's Msg wrappers
     | HomeMsg Home.Msg
     | DocumentationMsg Documentation.Msg
+      -- Navigation
     | UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
+      -- Global Msg
     | EngineInitialized
+    | NewEncodedSituation String
+      -- Situation buttons (reset, import, export)
     | ResetSituation
     | SelectSituationFile
     | ExportSituation
     | ImportSituationFile File
-    | NewEncodedSituation String
+      -- Personas
+    | SetPersonaSituation P.Situation
+    | OpenPersonasModal
+    | ClosePersonasModal
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -302,6 +264,33 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        SetPersonaSituation personaSituation ->
+            let
+                ( newModel, cmd ) =
+                    updateSituation personaSituation model
+            in
+            ( newModel, Cmd.batch [ cmd, Effect.closeModal "persona-modal" ] )
+
+        OpenPersonasModal ->
+            let
+                newModel =
+                    case model.page of
+                        Home m ->
+                            { model | page = Home (S.openPersonasModal m) }
+
+                        Documentation m ->
+                            { model | page = Documentation (S.openPersonasModal m) }
+
+                        NotFound s ->
+                            { model | page = NotFound { s | alreadyOpenedPersonasModal = True } }
+            in
+            ( newModel
+            , Effect.showModal "persona-modal"
+            )
+
+        ClosePersonasModal ->
+            ( model, Effect.closeModal "persona-modal" )
+
 
 updateSituation : P.Situation -> Model -> ( Model, Cmd Msg )
 updateSituation situation model =
@@ -336,9 +325,15 @@ view model =
             { title = ""
             , content = text ""
             , session = session
+
+            -- NOTE: this might be a sign that all the "global" update must be done
+            -- directly in the Template module.
             , resetSituation = ResetSituation
             , exportSituation = ExportSituation
             , importSituation = SelectSituationFile
+            , openPersonasModal = OpenPersonasModal
+            , closePersonasModal = ClosePersonasModal
+            , setPersonaSituation = SetPersonaSituation
             }
     in
     case model.page of

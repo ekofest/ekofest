@@ -5,6 +5,8 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Personas exposing (Personas)
+import Publicodes as P
 import Session as S
 import Views.Icons as Icons
 import Views.Link as Link
@@ -17,6 +19,9 @@ type alias Config msg =
     , resetSituation : msg
     , exportSituation : msg
     , importSituation : msg
+    , openPersonasModal : msg
+    , closePersonasModal : msg
+    , setPersonaSituation : P.Situation -> msg
     }
 
 
@@ -25,6 +30,10 @@ view config =
     { title = config.title ++ " | Ekofest"
     , body =
         [ viewHeader config
+        , viewPersonasModal
+            config.session.personas
+            config.setPersonaSituation
+            config.closePersonasModal
         , main_ []
             [ if Dict.isEmpty config.session.rawRules then
                 div [ class "flex flex-col w-full h-full items-center" ]
@@ -41,25 +50,30 @@ view config =
 
 
 viewHeader : Config msg -> Html msg
-viewHeader { resetSituation, exportSituation, importSituation } =
+viewHeader { resetSituation, exportSituation, importSituation, openPersonasModal, session } =
     let
         btnClass =
-            "join-item btn-sm bg-base-100 border border-base-200 hover:bg-base-200"
+            "join-item inline-flex items-center btn-sm bg-base-100 border border-base-200 hover:bg-base-200"
     in
     header []
-        [ div [ class "flex md:items-center sm:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
-            [ div [ class "flex items-center" ]
-                [ a [ href "/" ]
-                    [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
+        [ div [ class "flex items-center md:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
+            [ div [ class "flex flex-col items-center gap-4 mb-4 sm:mb-0 sm:items-center sm:justify-center sm:flex-row" ]
+                [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
+                , span [ class "relative inline-flex" ]
+                    [ button [ class (btnClass ++ " rounded-md"), onClick openPersonasModal ]
+                        [ text "Commencer avec un profil d'évènement"
+                        ]
+                    , viewPing (not session.alreadyOpenedPersonasModal)
                     ]
-                , span [ class "badge badge-accent badge-outline" ] [ text "beta" ]
                 ]
-            , div [ class "join p-2 mb-4 sm:mb-0" ]
+            , div [ class "join my-4 md:my-0 md:mb-0 rounded-md" ]
                 [ button [ class btnClass, onClick resetSituation ]
-                    [ span [ class "mr-2" ] [ Icons.refresh ], span [ class "invisible xsm:visible" ] [ text "Recommencer" ] ]
+                    [ span [ class "mx-2 xsm:mr-2" ] [ Icons.refresh ]
+                    , span [ class "invisible hidden xsm:visible xsm:block" ] [ text "Recommencer" ]
+                    ]
                 , button [ class btnClass, onClick exportSituation ]
-                    [ span [ class "mr-2" ] [ Icons.download ]
-                    , span [ class "invisible xsm:visible" ] [ text "Télécharger" ]
+                    [ span [ class "mx-2 xsm:mr-2" ] [ Icons.download ]
+                    , span [ class "invisible hidden xsm:visible xsm:block" ] [ text "Télécharger" ]
                     ]
                 , button
                     [ class btnClass
@@ -68,12 +82,61 @@ viewHeader { resetSituation, exportSituation, importSituation } =
                     , accept ".json"
                     , onClick importSituation
                     ]
-                    [ span [ class "mr-2" ] [ Icons.upload ]
-                    , span [ class "invisible xsm:visible" ] [ text "Importer" ]
+                    [ span [ class "mx-2 xsm:mr-2" ] [ Icons.upload ]
+                    , span [ class "invisible hidden xsm:visible xsm:block" ] [ text "Importer" ]
                     ]
                 ]
             ]
         ]
+
+
+viewPing : Bool -> Html msg
+viewPing show =
+    if show then
+        span [ class "flex absolute h-3 w-3 top-0 right-0 -mt-1 -mr-1" ]
+            [ span [ class "animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" ] []
+            , span [ class "relative inline-flex rounded-full h-3 w-3 bg-accent" ] []
+            ]
+
+    else
+        span [] []
+
+
+{-| TODO: abstract this into a reusable component
+-}
+viewPersonasModal : Personas -> (P.Situation -> msg) -> msg -> Html msg
+viewPersonasModal personas setPersonaSituation closePersonasModal =
+    node "dialog"
+        [ id "persona-modal", class "modal modal-bottom sm:modal-middle" ]
+        [ div [ class "modal-box rounded-md bg-neutral" ]
+            [ h3 [ class "text-xl pb-4 font-semibold" ]
+                [ text "Choississez le profil qui correspond le plus à votre évènement" ]
+            , viewPersonas personas setPersonaSituation
+            , div [ class "modal-action" ]
+                [ button
+                    [ class "btn-sm border border-base-200 hover:bg-base-200 rounded-md"
+                    , onClick closePersonasModal
+                    ]
+                    [ text "Fermer" ]
+                ]
+            ]
+        ]
+
+
+viewPersonas : Personas -> (P.Situation -> msg) -> Html msg
+viewPersonas personas setPersonaSituation =
+    div [ class "grid grid-cols-2 gap-4" ]
+        (personas
+            |> Dict.toList
+            |> List.map
+                (\( _, persona ) ->
+                    button
+                        [ class "btn text-md font-semibold bg-primary/5 border border-primary/20 hover:bg-primary/20 hover:border-primary/20 rounded-md p-4 flex items-center justify-center w-full h-24"
+                        , onClick (setPersonaSituation persona.situation)
+                        ]
+                        [ text persona.titre ]
+                )
+        )
 
 
 viewFooter : Html msg

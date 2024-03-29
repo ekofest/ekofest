@@ -4,6 +4,7 @@ import Effect
 import Helpers as H
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Json.Encode
 import Publicodes as P
 import Session
 import Views.Icons as Icons
@@ -39,14 +40,19 @@ view : Model -> Html Msg
 view model =
     div []
         [ div [ id "publicodes-rule-page-container" ] []
-        , viewRulePage model.rule
+        , viewRulePage model.rule model.session.situation
         ]
 
 
-viewRulePage : P.RuleName -> Html msg
-viewRulePage rule =
+viewRulePage : P.RuleName -> P.Situation -> Html msg
+viewRulePage rule situation =
+    let
+        serializedSituation =
+            Json.Encode.encode 0 (P.encodeSituation situation)
+    in
     node "publicodes-rule-page"
         [ attribute "rule" rule
         , attribute "documentationPath" "/documentation"
+        , attribute "situation" serializedSituation
         ]
         []

@@ -13,6 +13,12 @@ export function defineCustomElementWith(engine: EkofestEngine) {
             reactRoot: Root
             engine: EkofestEngine
 
+            static observedAttributes = [
+                "rule",
+                "documentationPath",
+                "situation",
+            ]
+
             constructor() {
                 super()
                 this.reactRoot = createRoot(
@@ -27,6 +33,7 @@ export function defineCustomElementWith(engine: EkofestEngine) {
             }
 
             attributeChangedCallback() {
+                console.log("attributeChangedCallback")
                 this.renderElement()
             }
 
@@ -64,10 +71,6 @@ export function defineCustomElementWith(engine: EkofestEngine) {
                         />
                     </Suspense>
                 )
-            }
-
-            static get observedAttributes() {
-                return ["rule", "documentationPath"]
             }
         }
     )

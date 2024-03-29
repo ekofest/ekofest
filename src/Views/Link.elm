@@ -6,12 +6,12 @@ import Html.Attributes exposing (..)
 
 baseClass : String
 baseClass =
-    "hover:text-primary"
+    "link hover:underline hover:text-accent"
 
 
 external : List (Attribute msg) -> List (Html msg) -> Html msg
 external attrs =
-    a (attrs ++ [ target "_blank", class (baseClass ++ " link"), rel "noopener noreferrer" ])
+    a (attrs ++ [ target "_blank", class baseClass, rel "noopener noreferrer" ])
 
 
 internal : List (Attribute msg) -> List (Html msg) -> Html msg

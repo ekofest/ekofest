@@ -439,6 +439,7 @@ viewInput model ( name, rule ) isApplicable =
 
                 Nothing ->
                     if String.isEmpty val then
+                        -- FIXME: there is a little delay when updatin an empty input
                         NoOp
 
                     else
@@ -460,7 +461,12 @@ viewInput model ( name, rule ) isApplicable =
                 viewRangeInput num newAnswer
 
             ( _, Just (P.Num num) ) ->
-                viewNumberInputOnlyPlaceHolder num newAnswer
+                case Dict.get name model.session.situation of
+                    Just _ ->
+                        viewNumberInput num newAnswer
+
+                    Nothing ->
+                        viewNumberInputOnlyPlaceHolder num newAnswer
 
             ( _, Just (P.Boolean bool) ) ->
                 viewBooleanRadioInput name bool
@@ -471,6 +477,17 @@ viewInput model ( name, rule ) isApplicable =
 
             _ ->
                 viewDisabledInput
+
+
+viewNumberInput : Float -> (String -> Msg) -> Html Msg
+viewNumberInput num newAnswer =
+    input
+        [ type_ "number"
+        , class "input input-bordered"
+        , value (String.fromFloat num)
+        , onInput newAnswer
+        ]
+        []
 
 
 viewNumberInputOnlyPlaceHolder : Float -> (String -> Msg) -> Html Msg

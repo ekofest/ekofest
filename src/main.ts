@@ -42,6 +42,7 @@ const engine = await EkofestEngine.createAsync(rules, situation, app)
 app.ports.engineInitialized.send(null)
 
 app.ports.setSituation.subscribe((newSituation: Situation) => {
+    // TODO: check if the situation is valid
     engine.setSituation(newSituation)
     localStorage.setItem("situation", JSON.stringify(newSituation))
 })

@@ -58,7 +58,9 @@ viewHeader { resetSituation, exportSituation, importSituation, openPersonasModal
     header []
         [ div [ class "flex items-center md:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex flex-col items-center gap-4 mb-4 sm:mb-0 sm:items-center sm:justify-center sm:flex-row" ]
-                [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
+                [ a [ href "/" ]
+                    [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
+                    ]
                 , span [ class "relative inline-flex" ]
                     [ button [ class (btnClass ++ " rounded-md"), onClick openPersonasModal ]
                         [ text "Commencer avec un profil d'évènement"

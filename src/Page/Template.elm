@@ -179,7 +179,7 @@ viewFooter =
                     [ text "Code source du site" ]
                 ]
             , nav []
-                [ h6 [ class "footer-title" ] [ text "Badges" ]
+                [ h6 [ class "footer-title" ] [ text "Informations" ]
                 , a [ href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
                     [ img
                         [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr"

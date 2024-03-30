@@ -178,14 +178,25 @@ viewFooter =
                 , Link.external [ href "https://github.com/ekofest/ekofest" ]
                     [ text "Code source du site" ]
                 ]
-            , a [ href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
-                [ img
-                    [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr"
-                    , alt "Ecoindex Badge"
-                    , class "w-24"
-                    , width 96
+            , nav []
+                [ h6 [ class "footer-title" ] [ text "Badges" ]
+                , a [ href "https://bff.ecoindex.fr/redirect/?url=https://ekofest.fr", target "_blank" ]
+                    [ img
+                        [ src "https://bff.ecoindex.fr/badge/?theme=light&url=https://ekofest.fr"
+                        , alt "Ecoindex Badge"
+                        , class "w-24"
+                        , width 96
+                        ]
+                        []
                     ]
-                    []
+                , a [ href "https://www.netlify.com" ]
+                    [ img
+                        [ src "https://www.netlify.com/v3/img/components/netlify-light.svg"
+                        , alt "Deploys by Netlify"
+                        , class "w-24"
+                        ]
+                        []
+                    ]
                 ]
             ]
         , footer [ class "footer p-4 bg-red-50 text-base-content border-t border-base-200" ]

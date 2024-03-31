@@ -136,11 +136,17 @@ router url model =
                 |> gotoDocumentation model
 
         "documentation" :: rulePath ->
-            -- TODO: handle the case where the rule does not exist
-            String.join "/" rulePath
-                |> P.decodeRuleName
-                |> Documentation.init session
-                |> gotoDocumentation model
+            let
+                ruleName =
+                    String.join "/" rulePath
+                        |> P.decodeRuleName
+            in
+            if Dict.member ruleName session.rawRules then
+                Documentation.init session ruleName
+                    |> gotoDocumentation model
+
+            else
+                ( { model | page = NotFound session }, Cmd.none )
 
         _ ->
             ( { model | page = NotFound session }, Cmd.none )

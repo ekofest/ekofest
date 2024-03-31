@@ -209,10 +209,10 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@publicodes/react-ui@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@publicodes/react-ui/-/react-ui-1.1.1.tgz#4321b5415d4688f329b8f342564ec8e88585e472"
-  integrity sha512-oYZBPtOr31EHrFmGaSYsNuYqFEyATz47d30XysNvrD4416klxwSUzOCISaBGHLNph2h5EeLTqufYm7lrj4hhHw==
+"@publicodes/react-ui@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@publicodes/react-ui/-/react-ui-1.2.0.tgz#4abd5273a35cb14e37227123ef0ff933a8efc5ba"
+  integrity sha512-0SVIyztnaidp+iOuWYJnK3FICvgYVxxsIQR5chj385mR4xD9SxpI2WSxB+5L+CvQc72PGAt+diXBMSvvdDNS/A==
   dependencies:
     fuse.js "^7.0.0"
     styled-components "^6.1.1"
@@ -1717,10 +1717,10 @@ publicodes-evenements@^0.6.0-rc.2:
   resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.6.0-rc.2.tgz#5460372ec4f9aa2eee5de0df208eb5d35e6149cd"
   integrity sha512-8X6cJorHyNSNxQc7tRkKgWbnG7dSIJksIvbMYNLotGDZ5AUZ6GMFWitssrq720SSvY8uuKD61+v1/otegswI9Q==
 
-publicodes@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/publicodes/-/publicodes-1.1.1.tgz#6bd283b3a0e7e41d5d3ab2454d639c27a46400e5"
-  integrity sha512-PO5nwianBt3D3xfVgfb6thJ1WT/ZE44dw6PvdyK/yBZSi69kh03tc7TyBrkVZcfsC00kZTfnJFNiVvJSTySYCA==
+publicodes@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/publicodes/-/publicodes-1.2.0.tgz#2856891da07633315eff419402bb61109045504d"
+  integrity sha512-qit3KsTqwZct5Xt6uyJ83yXNXxxScKuSRvemUgCRWEczP/mPAX/tiDQUgwwOC2fDoiCuQuZ9EiQwU5HfzHFIJQ==
 
 queue-microtask@^1.2.2:
   version "1.2.3"

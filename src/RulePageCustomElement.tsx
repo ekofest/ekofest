@@ -1,8 +1,6 @@
 import React, { Suspense } from "react"
 import { Root, createRoot } from "react-dom/client"
 import EkofestEngine from "./EkofestEngine"
-import Markdown from "react-markdown"
-import remarkGfm from "remark-gfm"
 
 const RulePage = React.lazy(() => import("./RulePage.tsx"))
 
@@ -54,31 +52,6 @@ export function defineCustomElementWith(engine: EkofestEngine) {
                             engine={this.engine}
                             rulePath={rulePath}
                             documentationPath={documentationPath}
-                            language={"fr"}
-                            searchBar={true}
-                            renderers={{
-                                Text: ({ children }) => (
-                                    <Markdown
-                                        className={"markdown"}
-                                        remarkPlugins={[remarkGfm]}
-                                    >
-                                        {children}
-                                    </Markdown>
-                                ),
-                                Link: ({ to, children }) => (
-                                    <button
-                                        className="link"
-                                        onClick={(e) => {
-                                            e.preventDefault()
-                                            this.engine
-                                                .getElmApp()
-                                                .ports.reactLinkClicked.send(to)
-                                        }}
-                                    >
-                                        {children}
-                                    </button>
-                                ),
-                            }}
                         />
                     </Suspense>
                 )

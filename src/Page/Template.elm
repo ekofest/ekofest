@@ -64,7 +64,14 @@ viewHeader { resetSituation, exportSituation, importSituation, openPersonasModal
         [ div [ class "flex items-center md:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex flex-col items-center gap-4 mb-4 sm:mb-0 sm:items-center sm:justify-center sm:flex-row" ]
                 [ a [ href "/" ]
-                    [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
+                    [ img
+                        [ src "/assets/logo.svg"
+                        , class "w-32 m-4"
+                        , width 128
+                        , height 32
+                        , alt "ekofest logo"
+                        ]
+                        []
                     ]
                 , span [ class "relative inline-flex" ]
                     [ button [ class (btnClass ++ " rounded-md"), onClick openPersonasModal ]
@@ -205,6 +212,7 @@ viewFooter =
                         , alt "Ecoindex Badge"
                         , class "w-24"
                         , width 96
+                        , height 24
                         ]
                         []
                     ]
@@ -213,6 +221,8 @@ viewFooter =
                         [ src "https://www.netlify.com/v3/img/components/netlify-light.svg"
                         , alt "Deploys by Netlify"
                         , class "w-24"
+                        , width 96
+                        , height 24
                         ]
                         []
                     ]

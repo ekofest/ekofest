@@ -40,6 +40,10 @@
     @apply hidden;
 }
 
+#documentation-rule-root button {
+    text-align: left;
+}
+
 .publicodes_btn-small {
     @apply border-accent text-accent mx-2 rounded border px-2 py-1 text-sm leading-none;
 }
@@ -50,4 +54,10 @@
 
 .node-value-pointer {
     @apply text-lg font-semibold;
+}
+
+.markdown {
+    @apply prose max-w-none;
+    @apply prose-blockquote:bg-primary/10;
+    @apply prose-table:max-w-[80%];
 }

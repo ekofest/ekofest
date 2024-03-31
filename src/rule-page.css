@@ -33,7 +33,7 @@
 }
 
 #documentation-rule-root p {
-    @apply mb-4;
+    @apply my-2;
 }
 
 #documentation-rule-root br {
@@ -57,7 +57,7 @@
 }
 
 .markdown {
-    @apply prose max-w-none;
-    @apply prose-blockquote:bg-primary/10;
+    @apply prose max-w-none my-2;
+    @apply prose-blockquote:bg-accent/10;
     @apply prose-table:max-w-[80%];
 }

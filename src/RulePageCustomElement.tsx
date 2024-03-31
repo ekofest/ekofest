@@ -47,7 +47,13 @@ export function defineCustomElementWith(engine: EkofestEngine) {
                 }
 
                 this.reactRoot.render(
-                    <Suspense fallback={<div>Loading...</div>}>
+                    <Suspense
+                        fallback={
+                            <div className="flex flex-col items-center justify-center mb-8 w-full">
+                                <div className="loading loading-lg text-primary mt-4"></div>
+                            </div>
+                        }
+                    >
                         <RulePage
                             engine={this.engine}
                             rulePath={rulePath}

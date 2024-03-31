@@ -38,7 +38,11 @@ view config =
             config.session.personas
             config.setPersonaSituation
             config.closePersonasModal
-        , viewReactRoot config.showReactRoot
+        , if config.showReactRoot then
+            div [ id "react-root" ] []
+
+          else
+            text ""
         , main_ []
             [ if Dict.isEmpty config.session.rawRules then
                 div [ class "flex flex-col w-full h-full items-center" ]
@@ -151,20 +155,6 @@ viewPersonas personas setPersonaSituation =
                         [ text persona.titre ]
                 )
         )
-
-
-{-| Empty div to mount React components and render custom elements.
-
-Currently, this is used to render the Publicodes documentation.
-
--}
-viewReactRoot : Bool -> Html msg
-viewReactRoot show =
-    if show then
-        div [ id "react-root" ] []
-
-    else
-        text ""
 
 
 viewFooter : Html msg

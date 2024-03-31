@@ -27,6 +27,9 @@ export default {
         typography: {
             DEFAULT: {
                 css: {
+                    a: {
+                        "text-decoration": "underline",
+                    },
                     blockquote: {
                         "font-style": "normal",
                         "border-left": "none",

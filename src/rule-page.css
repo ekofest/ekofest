@@ -1,0 +1,53 @@
+#documentation-rule-root {
+    min-height: 80vh;
+    text-align: left;
+    @apply bg-neutral border border-base-200 rounded-md m-8 px-4;
+}
+
+#documentation-rule-root nav {
+    @apply min-h-[80vh] lg:max-h-[80vh];
+}
+
+#documentation-search-item-name {
+    text-align: left;
+}
+
+#documentation-search-input {
+    @apply mt-4 mr-4 rounded-md;
+}
+
+#documentation-search-results {
+    width: 350px;
+}
+
+#documentation-rule-root header h1 {
+    @apply text-2xl font-semibold;
+}
+
+#documentation-rule-root article {
+    @apply py-4;
+}
+
+#documentation-rule-root h3 {
+    @apply text-lg font-semibold;
+}
+
+#documentation-rule-root p {
+    @apply mb-4;
+}
+
+#documentation-rule-root br {
+    @apply hidden;
+}
+
+.publicodes_btn-small {
+    @apply border-accent text-accent mx-2 rounded border px-2 py-1 text-sm leading-none;
+}
+
+.publicodes_btn-small:hover {
+    @apply bg-accent text-neutral;
+}
+
+.node-value-pointer {
+    @apply text-lg font-semibold;
+}

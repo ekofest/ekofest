@@ -1,5 +1,6 @@
 import React from "react"
 import { RulePage } from "@publicodes/react-ui"
+import "./rule-page.css"
 
 /**
  * NOTE: I used lazy loading for the RulePage component mainly because otherwise it would

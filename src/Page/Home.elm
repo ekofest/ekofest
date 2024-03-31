@@ -189,11 +189,11 @@ view model =
     div []
         [ if Dict.isEmpty model.evaluations then
             div [ class "flex flex-col w-full h-full items-center" ]
-                [ div [ class "loading loading-lg text-primary mt-4" ] []
+                [ div [ class "loading loading-lg text-primary my-4" ] []
                 ]
 
           else
-            div []
+            div [ class "md:mb-16" ]
                 [ lazy2 viewCategoriesTabs model.orderedCategories model.currentTab
                 , div
                     [ class "flex flex-col-reverse lg:grid lg:grid-cols-3" ]
@@ -266,7 +266,7 @@ viewCategoryQuestions model =
         currentCategory =
             Maybe.withDefault "" model.currentTab
     in
-    div [ class "bg-neutral border border-base-200 rounded-md mb-4" ]
+    div [ class "bg-neutral border border-base-200 rounded-md" ]
         (session.ui.categories
             |> Dict.toList
             |> List.map

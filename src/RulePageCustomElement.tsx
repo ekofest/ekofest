@@ -57,6 +57,7 @@ export function defineCustomElementWith(engine: EkofestEngine) {
                             renderers={{
                                 Link: ({ to, children }) => (
                                     <button
+                                        className="link"
                                         onClick={(e) => {
                                             e.preventDefault()
                                             this.engine

@@ -1,13 +1,10 @@
 module Page.Documentation exposing (Model, Msg, init, update, view)
 
-import Effect
-import Helpers as H
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Encode
 import Publicodes as P
 import Session
-import Views.Icons as Icons
 
 
 type alias Model =
@@ -37,18 +34,10 @@ update msg model =
 
 
 view : Model -> Html Msg
-view model =
-    div []
-        [ div [ id "publicodes-rule-page-container" ] []
-        , viewRulePage model.rule model.session.situation
-        ]
-
-
-viewRulePage : P.RuleName -> P.Situation -> Html msg
-viewRulePage rule situation =
+view { session, rule } =
     let
         serializedSituation =
-            Json.Encode.encode 0 (P.encodeSituation situation)
+            Json.Encode.encode 0 (P.encodeSituation session.situation)
     in
     node "publicodes-rule-page"
         [ attribute "rule" rule

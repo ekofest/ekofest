@@ -1,11 +1,10 @@
 module Page.Documentation exposing (Model, Msg, init, update, view)
 
-import Helpers as H
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Json.Encode
 import Publicodes as P
 import Session
-import Views.Icons as Icons
 
 
 type alias Model =
@@ -35,15 +34,14 @@ update msg model =
 
 
 view : Model -> Html Msg
-view model =
-    div [ class "flex flex-col justify-center items-center w-full" ]
-        [ div [ class "flex flex-col gap-4 justify-center items-center w-fit min-h-[75vh]" ]
-            [ h1 [ class "text-5xl" ]
-                [ text ("Documentation - " ++ H.getTitle model.session.rawRules model.rule) ]
-            , p [] [ text "Cette page est en cours de construction." ]
-            , a [ target "_blank", class "btn btn-primary text-white mt-8", href "https://ekofest.github.io/publicodes-evenements" ]
-                [ Icons.bookOpenText
-                , text "Visiter la documentation générale des règles"
-                ]
-            ]
+view { session, rule } =
+    let
+        serializedSituation =
+            Json.Encode.encode 0 (P.encodeSituation session.situation)
+    in
+    node "publicodes-rule-page"
+        [ attribute "rule" rule
+        , attribute "documentationPath" "/documentation"
+        , attribute "situation" serializedSituation
         ]
+        []

@@ -16,6 +16,10 @@ type alias Config msg =
     { title : String
     , content : Html msg
     , session : S.Data
+
+    -- Show an empty div to mount React components and render custom elements.
+    -- Currenlty, this is used to render the Publicodes documentation.
+    , showReactRoot : Bool
     , resetSituation : msg
     , exportSituation : msg
     , importSituation : msg
@@ -34,6 +38,11 @@ view config =
             config.session.personas
             config.setPersonaSituation
             config.closePersonasModal
+        , if config.showReactRoot then
+            div [ id "react-root" ] []
+
+          else
+            text ""
         , main_ []
             [ if Dict.isEmpty config.session.rawRules then
                 div [ class "flex flex-col w-full h-full items-center" ]
@@ -59,7 +68,14 @@ viewHeader { resetSituation, exportSituation, importSituation, openPersonasModal
         [ div [ class "flex items-center md:flex-row justify-between flex-col w-full px-4 lg:px-8 border-b border-base-200 bg-neutral" ]
             [ div [ class "flex flex-col items-center gap-4 mb-4 sm:mb-0 sm:items-center sm:justify-center sm:flex-row" ]
                 [ a [ href "/" ]
-                    [ img [ src "/assets/logo.svg", class "w-32 m-4", width 128, alt "ekofest logo" ] []
+                    [ img
+                        [ src "/assets/logo.svg"
+                        , class "w-32 m-4"
+                        , width 128
+                        , height 32
+                        , alt "ekofest logo"
+                        ]
+                        []
                     ]
                 , span [ class "relative inline-flex" ]
                     [ button [ class (btnClass ++ " rounded-md"), onClick openPersonasModal ]
@@ -144,7 +160,7 @@ viewPersonas personas setPersonaSituation =
 viewFooter : Html msg
 viewFooter =
     div []
-        [ footer [ class "footer p-8 mt-8 md:mt-20 bg-neutral text-base-content border-t border-base-200" ]
+        [ footer [ class "footer p-8 bg-neutral text-base-content border-t border-base-200" ]
             [ aside [ class "text-md max-w-4xl" ]
                 [ div []
                     [ text """
@@ -186,6 +202,7 @@ viewFooter =
                         , alt "Ecoindex Badge"
                         , class "w-24"
                         , width 96
+                        , height 24
                         ]
                         []
                     ]
@@ -194,6 +211,8 @@ viewFooter =
                         [ src "https://www.netlify.com/v3/img/components/netlify-light.svg"
                         , alt "Deploys by Netlify"
                         , class "w-24"
+                        , width 96
+                        , height 24
                         ]
                         []
                     ]

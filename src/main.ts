@@ -5,14 +5,25 @@ import EkofestEngine, {
     RuleName,
     Situation,
 } from "./EkofestEngine"
-import rules, { personas, ui } from "publicodes-evenements"
+
+import rules, { ui, personas } from "publicodes-evenements"
+import { defineCustomElementWith } from "./RulePageCustomElement"
 
 let situation = JSON.parse(localStorage.getItem("situation") ?? "{}")
+
+// NOTE(@EmileRolley): I encapsulate the engine in a promise to be able to
+// initialize it asynchronously. This is useful to avoid blocking the UI while
+// the engine is being initialized.
+const engine = await EkofestEngine.createAsync(rules, situation)
+
+defineCustomElementWith(engine)
 
 let app = Elm.Main.init({
     flags: { rules, ui, personas, situation },
     node: document.getElementById("elm-app"),
 })
+
+engine.setElmApp(app)
 
 /// Basic ports
 
@@ -33,11 +44,6 @@ app.ports.closeModal.subscribe((id: string) => {
 })
 
 /// Publicodes
-
-// NOTE(@EmileRolley): I encapsulate the engine in a promise to be able to
-// initialize it asynchronously. This is useful to avoid blocking the UI while
-// the engine is being initialized.
-const engine = await EkofestEngine.createAsync(rules, situation, app)
 
 app.ports.engineInitialized.send(null)
 

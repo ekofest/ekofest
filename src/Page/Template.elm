@@ -38,10 +38,11 @@ view config =
             config.session.personas
             config.setPersonaSituation
             config.closePersonasModal
-        , {- if config.showReactRoot then -} div [ id "react-root" ] []
+        , if config.showReactRoot then
+            div [ id "react-root" ] []
 
-        -- else
-        --   text ""
+          else
+            text ""
         , main_ []
             [ if Dict.isEmpty config.session.rawRules then
                 div [ class "flex flex-col w-full h-full items-center" ]

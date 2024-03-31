@@ -33,7 +33,6 @@ export function defineCustomElementWith(engine: EkofestEngine) {
             }
 
             attributeChangedCallback() {
-                console.log("attributeChangedCallback")
                 this.renderElement()
             }
 

@@ -28,7 +28,3 @@ personaDecoder =
         |> required "titre" string
         |> required "description" string
         |> required "situation" P.situationDecoder
-
-
-
--- Helpers

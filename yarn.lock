@@ -2389,10 +2389,10 @@ property-information@^6.0.0:
   resolved "https://registry.yarnpkg.com/property-information/-/property-information-6.4.1.tgz#de8b79a7415fd2107dfbe65758bb2cc9dfcf60ac"
   integrity sha512-OHYtXfu5aI2sS2LWFSN5rgJjrQ4pCy8i1jubJLe2QvMF8JJ++HXTUIVWFLfXJoaOfvYYjk2SN8J2wFUWIGXT4w==
 
-publicodes-evenements@^0.6.0-rc.2:
-  version "0.6.0-rc.2"
-  resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.6.0-rc.2.tgz#5460372ec4f9aa2eee5de0df208eb5d35e6149cd"
-  integrity sha512-8X6cJorHyNSNxQc7tRkKgWbnG7dSIJksIvbMYNLotGDZ5AUZ6GMFWitssrq720SSvY8uuKD61+v1/otegswI9Q==
+publicodes-evenements@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.6.0.tgz#08b14fad6d7f7f7398b6a37225dfbbfc658168f7"
+  integrity sha512-qMfvGGHArBS5nv7YxoofXSjgkr4Qw/apDKPu0MLlTCElOnIvgr6XmOwVUrnxomteXRSz5xC8Q0k8zCuOgwgjOw==
 
 publicodes@^1.2.0:
   version "1.2.0"

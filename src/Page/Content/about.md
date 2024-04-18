@@ -1,4 +1,4 @@
-# ekofest - A propos
+# À propos
 
 ## C'est quoi ?
 

@@ -12,7 +12,7 @@ view =
 
 aboutContent : String
 aboutContent =
-    """# ekofest - A propos
+    """# À propos
 
 ## C'est quoi ?
 

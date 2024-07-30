@@ -209,10 +209,10 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@publicodes/react-ui@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@publicodes/react-ui/-/react-ui-1.2.0.tgz#4abd5273a35cb14e37227123ef0ff933a8efc5ba"
-  integrity sha512-0SVIyztnaidp+iOuWYJnK3FICvgYVxxsIQR5chj385mR4xD9SxpI2WSxB+5L+CvQc72PGAt+diXBMSvvdDNS/A==
+"@publicodes/react-ui@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@publicodes/react-ui/-/react-ui-1.5.0.tgz#0beac2683a40bb4d22e266c296a63c9cd8cf0ebe"
+  integrity sha512-CGflwv7GNkQbOSGVk7YO9pB4lisPTECR18VDMwgKaWgHuIh1Q4WdHRFOXD2cWWcpZOyiSM0+IEGzHPEA39UlDw==
   dependencies:
     fuse.js "^7.0.0"
     styled-components "^6.1.1"
@@ -2394,10 +2394,10 @@ publicodes-evenements@^0.6.0:
   resolved "https://registry.yarnpkg.com/publicodes-evenements/-/publicodes-evenements-0.6.0.tgz#08b14fad6d7f7f7398b6a37225dfbbfc658168f7"
   integrity sha512-qMfvGGHArBS5nv7YxoofXSjgkr4Qw/apDKPu0MLlTCElOnIvgr6XmOwVUrnxomteXRSz5xC8Q0k8zCuOgwgjOw==
 
-publicodes@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/publicodes/-/publicodes-1.2.0.tgz#2856891da07633315eff419402bb61109045504d"
-  integrity sha512-qit3KsTqwZct5Xt6uyJ83yXNXxxScKuSRvemUgCRWEczP/mPAX/tiDQUgwwOC2fDoiCuQuZ9EiQwU5HfzHFIJQ==
+publicodes@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/publicodes/-/publicodes-1.5.0.tgz#776ce14af79a1c130bd1e9092a5f23574d2f4711"
+  integrity sha512-A4rQkVN56tBg5uYzL0W639UTKrfjV4jLP+w1uxpNEpfw4NygV8sZQpG2wJVI/AOZoVUUbRbpyi8UXXb07O4YSA==
 
 queue-microtask@^1.2.2:
   version "1.2.3"
@@ -2602,8 +2602,16 @@ space-separated-tokens@^2.0.0:
   resolved "https://registry.yarnpkg.com/space-separated-tokens/-/space-separated-tokens-2.0.2.tgz#1ecd9d2350a3844572c3f4a312bceb018348859f"
   integrity sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==
 
-"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
-  name string-width-cjs
+"string-width-cjs@npm:string-width@^4.2.0":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
+  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
+  dependencies:
+    emoji-regex "^8.0.0"
+    is-fullwidth-code-point "^3.0.0"
+    strip-ansi "^6.0.1"
+
+string-width@^4.1.0:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -2629,8 +2637,14 @@ stringify-entities@^4.0.0:
     character-entities-html4 "^2.0.0"
     character-entities-legacy "^3.0.0"
 
-"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
-  name strip-ansi-cjs
+"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
+  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
+  dependencies:
+    ansi-regex "^5.0.1"
+
+strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==

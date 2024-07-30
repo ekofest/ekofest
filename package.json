@@ -13,8 +13,8 @@
         "deploy": "gh-pages -d build"
     },
     "dependencies": {
-        "@publicodes/react-ui": "^1.2.0",
-        "publicodes": "^1.2.0",
+        "@publicodes/react-ui": "^1.5.0",
+        "publicodes": "^1.5.0",
         "publicodes-evenements": "^0.6.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

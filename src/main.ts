@@ -1,17 +1,14 @@
 // @ts-ignore
 import { Elm } from "./Main.elm"
-import EkofestEngine, {
-    PublicodeValue,
-    RuleName,
-    Situation,
-} from "./EkofestEngine"
+import EkofestEngine, { PublicodeValue, RuleName } from "./EkofestEngine"
 
 import rules, { ui, personas } from "publicodes-evenements"
 import { defineCustomElementWith } from "./RulePageCustomElement"
+import { Situation } from "publicodes"
 
-let situation = JSON.parse(localStorage.getItem("situation") ?? "{}")
+const situation = JSON.parse(localStorage.getItem("situation") ?? "{}")
 
-let app = Elm.Main.init({
+const app = Elm.Main.init({
     flags: { rules, ui, personas, situation },
     node: document.getElementById("elm-app"),
 })
@@ -50,7 +47,7 @@ app.ports.closeModal.subscribe((id: string) => {
 
 app.ports.engineInitialized.send(null)
 
-app.ports.setSituation.subscribe((newSituation: Situation) => {
+app.ports.setSituation.subscribe((newSituation: Situation<RuleName>) => {
     // TODO: check if the situation is valid
     engine.setSituation(newSituation)
     localStorage.setItem("situation", JSON.stringify(newSituation))

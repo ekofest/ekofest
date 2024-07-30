@@ -1,6 +1,5 @@
 import { defineConfig } from "vite"
 import elm from "vite-plugin-elm"
-import path from "path"
 
 export default defineConfig({
     plugins: [elm.default()],

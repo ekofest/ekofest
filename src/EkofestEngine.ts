@@ -1,13 +1,12 @@
-import Engine, { ASTNode, PublicodesExpression, Rule } from "publicodes"
+import Engine, { Rule, Situation } from "publicodes"
 
 export type RuleName = string
 export type PublicodeValue = string | number
 export type RawRule = Omit<Rule, "nom"> | string | number
-export type Situation = Record<RuleName, PublicodeValue>
 
 export default class EkofestEngine extends Engine {
     private elmApp: any | null
-    private situation: Readonly<Situation>
+    private situation: Readonly<Situation<RuleName>>
 
     constructor(rules: Record<RuleName, RawRule>) {
         super(rules)
@@ -17,7 +16,7 @@ export default class EkofestEngine extends Engine {
 
     public static createAsync(
         rules: Readonly<Record<RuleName, RawRule>>,
-        situation: Readonly<Situation>,
+        situation: Readonly<Situation<RuleName>>,
         app: any
     ) {
         return new Promise<EkofestEngine>((resolve) => {
@@ -38,18 +37,18 @@ export default class EkofestEngine extends Engine {
         return this.elmApp
     }
 
-    getSituation(): Situation {
+    getSituation(): Situation<RuleName> {
         return this.situation
     }
 
     setSituation(
-        situation?: Partial<Record<RuleName, PublicodesExpression | ASTNode>>,
+        situation?: Situation<RuleName>,
         options?: {
             keepPreviousSituation?: boolean
         }
     ): this {
         const res = super.setSituation(situation, options)
-        this.situation = situation as Situation
+        this.situation = situation ?? {}
         this.elmApp?.ports.situationUpdated.send(null)
         return res
     }
